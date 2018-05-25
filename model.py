@@ -1,20 +1,20 @@
 
 import os
 import tensorflow as tf
-from module import discriminator, generator_resnet
+from module import discriminator, generator_gatedcnn
 from utils import l1_loss, l2_loss, cross_entropy_loss
 from datetime import datetime
 
 class CycleGAN(object):
 
-    def __init__(self, input_size, num_filters = 64, discriminator = discriminator, generator = generator_resnet, lambda_cycle = 10, mode = 'train', log_dir = './log'):
+    def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, lambda_cycle = 10, mode = 'train', log_dir = './log'):
 
-        self.input_size = input_size
+        self.num_features = num_features
+        self.input_shape = [None, num_features, None] # [batch_size, num_features, num_frames]
 
         self.discriminator = discriminator
         self.generator = generator
         self.lambda_cycle = lambda_cycle
-        self.num_filters = num_filters
         self.mode = mode
 
         self.build_model()
@@ -34,23 +34,27 @@ class CycleGAN(object):
     def build_model(self):
 
         # Placeholders for real training samples
-        self.input_A_real = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_A_real')
-        self.input_B_real = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_B_real')
+        self.input_A_real = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_A_real')
+        self.input_B_real = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_B_real')
         # Placeholders for fake generated samples
-        self.input_A_fake = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_A_fake')
-        self.input_B_fake = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_B_fake')
+        self.input_A_fake = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_A_fake')
+        self.input_B_fake = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_B_fake')
         # Placeholder for test samples
-        self.input_A_test = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_A_test')
-        self.input_B_test = tf.placeholder(tf.float32, shape = [None] + self.input_size, name = 'input_B_test')
+        self.input_A_test = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_A_test')
+        self.input_B_test = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_B_test')
 
-        self.generation_B = self.generator(inputs = self.input_A_real, num_filters = self.num_filters, reuse = False, scope_name = 'generator_A2B')
-        self.cycle_A = self.generator(inputs = self.generation_B, num_filters = self.num_filters, reuse = False, scope_name = 'generator_B2A')
+        self.generation_B = self.generator(inputs = self.input_A_real, reuse = False, scope_name = 'generator_A2B')
+        #print('================')
+        #print(self.generation_B.get_shape().as_list())
+        self.cycle_A = self.generator(inputs = self.generation_B, reuse = False, scope_name = 'generator_B2A')
+        #print(self.cycle_A.get_shape().as_list())
+        #print('================')
 
-        self.generation_A = self.generator(inputs = self.input_B_real, num_filters = self.num_filters, reuse = True, scope_name = 'generator_B2A')
-        self.cycle_B = self.generator(inputs = self.generation_A, num_filters = self.num_filters, reuse = True, scope_name = 'generator_A2B')
+        self.generation_A = self.generator(inputs = self.input_B_real, reuse = True, scope_name = 'generator_B2A')
+        self.cycle_B = self.generator(inputs = self.generation_A, reuse = True, scope_name = 'generator_A2B')
 
-        self.discrimination_A_fake = self.discriminator(inputs = self.generation_A, num_filters = self.num_filters, reuse = False, scope_name = 'discriminator_A')
-        self.discrimination_B_fake = self.discriminator(inputs = self.generation_B, num_filters = self.num_filters, reuse = False, scope_name = 'discriminator_B')
+        self.discrimination_A_fake = self.discriminator(inputs = self.generation_A, reuse = False, scope_name = 'discriminator_A')
+        self.discrimination_B_fake = self.discriminator(inputs = self.generation_B, reuse = False, scope_name = 'discriminator_B')
 
         # Cycle loss
         self.cycle_loss = l1_loss(y = self.input_A_real, y_hat = self.cycle_A) + l1_loss(y = self.input_B_real, y_hat = self.cycle_B)
@@ -64,10 +68,10 @@ class CycleGAN(object):
         self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss
 
         # Discriminator loss
-        self.discrimination_input_A_real = self.discriminator(inputs = self.input_A_real, num_filters = self.num_filters, reuse = True, scope_name = 'discriminator_A')
-        self.discrimination_input_B_real = self.discriminator(inputs = self.input_B_real, num_filters = self.num_filters, reuse = True, scope_name = 'discriminator_B')
-        self.discrimination_input_A_fake = self.discriminator(inputs = self.input_A_fake, num_filters = self.num_filters, reuse = True, scope_name = 'discriminator_A')
-        self.discrimination_input_B_fake = self.discriminator(inputs = self.input_B_fake, num_filters = self.num_filters, reuse = True, scope_name = 'discriminator_B')
+        self.discrimination_input_A_real = self.discriminator(inputs = self.input_A_real, reuse = True, scope_name = 'discriminator_A')
+        self.discrimination_input_B_real = self.discriminator(inputs = self.input_B_real, reuse = True, scope_name = 'discriminator_B')
+        self.discrimination_input_A_fake = self.discriminator(inputs = self.input_A_fake, reuse = True, scope_name = 'discriminator_A')
+        self.discrimination_input_B_fake = self.discriminator(inputs = self.input_B_fake, reuse = True, scope_name = 'discriminator_B')
 
         # Discriminator wants to classify real and fake correctly
         self.discriminator_loss_input_A_real = l2_loss(y = tf.ones_like(self.discrimination_input_A_real), y_hat = self.discrimination_input_A_real)
@@ -88,8 +92,8 @@ class CycleGAN(object):
         #for var in t_vars: print(var.name)
 
         # Reserved for test
-        self.generation_B_test = self.generator(inputs = self.input_A_test, num_filters = self.num_filters, reuse = True, scope_name = 'generator_A2B')
-        self.generation_A_test = self.generator(inputs = self.input_B_test, num_filters = self.num_filters, reuse = True, scope_name = 'generator_B2A')
+        self.generation_B_test = self.generator(inputs = self.input_A_test, reuse = True, scope_name = 'generator_A2B')
+        self.generation_A_test = self.generator(inputs = self.input_B_test, reuse = True, scope_name = 'generator_B2A')
 
 
     def optimizer_initializer(self):
@@ -159,3 +163,7 @@ class CycleGAN(object):
         return generator_summaries, discriminator_summaries
 
 
+if __name__ == '__main__':
+    
+    model = CycleGAN(num_features = 24)
+    print('Graph Compile Successeded.')

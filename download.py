@@ -8,7 +8,6 @@ import argparse
 
 pbar = None
 
-
 def progress_bar(block_num, block_size, total_size):
     global pbar
     if pbar is None:
@@ -66,7 +65,7 @@ def download_vcc2016(download_dir = './download', data_dir = './data'):
 
     for data_file in data_files:
         url = url_prefix + data_file
-        dataset_filepath = maybe_download(filename = data_file, url = url + '.zip', destination_dir = download_dir, force = False)
+        dataset_filepath = maybe_download(filename = data_file, url = url, destination_dir = download_dir, force = False)
         destination_dir = data_dir
         maybe_unzip(zip_filepath = dataset_filepath, destination_dir = destination_dir, force = False)
 

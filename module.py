@@ -1,14 +1,56 @@
 
 import tensorflow as tf 
 
+
+def gated_linear_layer(inputs, gates, name = None):
+
+    activation = tf.multiply(x = inputs, y = tf.sigmoid(gates), name = name)
+
+    return activation
+
+def instance_norm_layer(
+    inputs, 
+    epsilon = 1e-06, 
+    activation_fn = None, 
+    name = None):
+
+    instance_norm_layer = tf.contrib.layers.instance_norm(
+        inputs = inputs,
+        epsilon = epsilon,
+        activation_fn = activation_fn)
+
+    return instance_norm_layer
+
+def conv1d_layer(
+    inputs, 
+    filters, 
+    kernel_size, 
+    strides = 1, 
+    padding = 'same', 
+    activation = None,
+    kernel_initializer = None,
+    name = None):
+
+    conv_layer = tf.layers.conv1d(
+        inputs = inputs,
+        filters = filters,
+        kernel_size = kernel_size,
+        strides = strides,
+        padding = padding,
+        activation = activation,
+        kernel_initializer = kernel_initializer,
+        name = name)
+
+    return conv_layer
+
 def conv2d_layer(
     inputs, 
     filters, 
-    kernel_size = [4, 4], 
-    strides = [2, 2], 
+    kernel_size, 
+    strides, 
     padding = 'same', 
     activation = None,
-    kernel_initializer = tf.truncated_normal_initializer(stddev = 0.02),
+    kernel_initializer = None,
     name = None):
 
     conv_layer = tf.layers.conv2d(
@@ -23,134 +65,179 @@ def conv2d_layer(
 
     return conv_layer
 
-def conv2d_transpose_layer(
-    inputs,
-    filters,
-    kernel_size,
-    strides,
-    padding = 'same',
-    activation = None,
-    kernel_initializer = tf.truncated_normal_initializer(stddev = 0.02),
-    name = None):
 
-    deconv_layer = tf.layers.conv2d_transpose(
-        inputs = inputs,
-        filters = filters,
-        kernel_size = kernel_size,
-        strides = strides,
-        padding = padding,
-        activation = activation,
-        kernel_initializer = kernel_initializer,
-        name = name)
-
-    return deconv_layer
-
-    
-def instance_norm_layer(
+def residual1d_block(
     inputs, 
-    epsilon = 1e-06, 
-    activation_fn = None, 
-    name = None):
-
-    instance_norm_layer = tf.contrib.layers.instance_norm(
-        inputs = inputs,
-        epsilon = epsilon,
-        activation_fn = activation_fn)
-
-    return instance_norm_layer
-
-
-def residual_block(
-    inputs, 
-    filters, 
-    kernel_size = [3, 3], 
-    strides = [1, 1],
+    filters = 1024, 
+    kernel_size = 3, 
+    strides = 1,
     name_prefix = 'residule_block_'):
 
-    p1 = (kernel_size[0] - 1) // 2
-    p2 = (kernel_size[1] - 1) // 2 
+    h1 = conv1d_layer(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, activation = None, name = name_prefix + 'h1_conv')
+    h1_norm = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm')
+    h1_norm_gates = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm_gates')
+    h1_glu = gated_linear_layer(inputs = h1_norm, gates = h1_norm_gates, name = name_prefix + 'h1_glu')
+    h2 = conv1d_layer(inputs = h1_glu, filters = filters // 2, kernel_size = kernel_size, strides = strides, activation = None, name = name_prefix + 'h2_conv')
+    h2_norm = instance_norm_layer(inputs = h2, activation_fn = None, name = name_prefix + 'h2_norm')
+    
+    h3 = inputs + h2_norm
 
-    paddings = [[0, 0], [p1, p1], [p2, p2], [0, 0]]
+    return h3
 
-    h0_pad = tf.pad(tensor = inputs, paddings = paddings, mode = 'REFLECT', name = 'pad0')
-    h1 = conv2d_layer(inputs = h0_pad, filters = filters, kernel_size = kernel_size, strides = strides, padding = 'valid', activation = None, name = name_prefix + 'conv1')
-    h1_norm = instance_norm_layer(inputs = h1, activation_fn = tf.nn.relu, name = name_prefix + 'norm1')
-    h1_pad = tf.pad(tensor = h1_norm, paddings = paddings, mode = 'REFLECT', name = 'pad1')
-    h2 = conv2d_layer(inputs = h1_pad, filters = filters, kernel_size = kernel_size, strides = strides, padding = 'valid', activation = None, name = name_prefix + 'conv2')
-    h2_norm = instance_norm_layer(inputs = h2, activation_fn = None, name = name_prefix + 'norm2')
+def downsample1d_block(
+    inputs, 
+    filters, 
+    kernel_size, 
+    strides,
+    name_prefix = 'downsample1d_block_'):
 
-    return inputs + h2_norm
+    h1 = conv1d_layer(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, activation = None, name = name_prefix + 'h1_conv')
+    h1_norm = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm')
+    h1_norm_gates = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm_gates')
+    h1_glu = gated_linear_layer(inputs = h1_norm, gates = h1_norm_gates, name = name_prefix + 'h1_glu')
+
+    return h1_glu
+
+def downsample2d_block(
+    inputs, 
+    filters, 
+    kernel_size, 
+    strides,
+    name_prefix = 'downsample2d_block_'):
+
+    h1 = conv2d_layer(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, activation = None, name = name_prefix + 'h1_conv')
+    h1_norm = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm')
+    h1_norm_gates = instance_norm_layer(inputs = h1, activation_fn = None, name = name_prefix + 'h1_norm_gates')
+    h1_glu = gated_linear_layer(inputs = h1_norm, gates = h1_norm_gates, name = name_prefix + 'h1_glu')
+
+    return h1_glu
 
 
-def discriminator(inputs, num_filters = 64, reuse = False, scope_name = 'discriminator'):
+
+def upsample1d_block(
+    inputs, 
+    filters, 
+    kernel_size, 
+    strides,
+    shuffle_size = 2,
+    name_prefix = 'upsample1d_block_'):
+    
+    h1 = conv1d_layer(inputs = inputs, filters = filters, kernel_size = kernel_size, strides = strides, activation = None, name = name_prefix + 'h1_conv')
+    h2 = pixel_shuffler(inputs = h1, shuffle_size = shuffle_size, name = name_prefix + 'h2_shuffle')
+    h2_norm = instance_norm_layer(inputs = h2, activation_fn = None, name = name_prefix + 'h2_norm')
+    h2_norm_gates = instance_norm_layer(inputs = h2, activation_fn = None, name = name_prefix + 'h2_norm_gates')
+    h2_glu = gated_linear_layer(inputs = h2_norm, gates = h2_norm_gates, name = name_prefix + 'h2_glu')
+
+    return h2_glu
+
+'''
+def pixel_shuffler(inputs, size = [1, 2], name = None):
+
+    # Not exactly verified
+    n, h, w, c = inputs.get_shape().as_list()
+    rh, rw = size
+    oh = h * rh
+    ow = w * rw
+    oc = c // (rh * rw)
+
+    outputs = tf.reshape(tensor = inputs, shape = [n, rh, rw, h, w, oc])
+    outputs = tf.transpose(outputs, perm = [0, 3, 1, 4, 2, 5])
+    outputs = tf.reshape(tensor = outputs, shape = [n, oh, ow, oc], name = name)
+
+    return outputs
+'''
+
+
+def pixel_shuffler(inputs, shuffle_size = 2, name = None):
+
+    #print('-----------------------')
+    #print(inputs.get_shape().as_list())
+    #print('-----------------------')
+
+    #n, w, c = inputs.get_shape().as_list()
+    n = tf.shape(inputs)[0]
+    w = tf.shape(inputs)[1]
+    c = inputs.get_shape().as_list()[2]
+
+    oc = c // shuffle_size
+    ow = w * shuffle_size
+
+    #outputs = tf.reshape(tensor = inputs, shape = [-1, ow, oc], name = name)
+
+    outputs = tf.reshape(tensor = inputs, shape = [n, ow, oc], name = name)
+    #print('-----------------------')
+    #print('Here')
+    #print(outputs.get_shape().as_list())
+    #print('-----------------------')
+
+    return outputs
+
+def generator_gatedcnn(inputs, reuse = False, scope_name = 'generator_gatedcnn'):
+
+    # inputs has shape [batch_size, num_features, time]
+    # we need to convert it to [batch_size, time, num_features] for 1D convolution
+    inputs = tf.transpose(inputs, perm = [0, 2, 1], name = 'input_transpose')
+    #print(inputs.get_shape().as_list())
 
     with tf.variable_scope(scope_name) as scope:
-
         # Discriminator would be reused in CycleGAN
         if reuse:
             scope.reuse_variables()
         else:
             assert scope.reuse is False
 
-        h0 = conv2d_layer(inputs = inputs, filters = num_filters, activation = tf.nn.leaky_relu, name = 'h0_conv')
-        h1 = conv2d_layer(inputs = h0, filters = num_filters * 2, activation = None, name = 'h1_conv')
-        h1_norm = instance_norm_layer(inputs = h1, activation_fn = tf.nn.leaky_relu, name = 'h1_norm')
-        h2 = conv2d_layer(inputs = h1_norm, filters = num_filters * 4, activation = None, name = 'h2_conv')
-        h2_norm = instance_norm_layer(inputs = h2, activation_fn = tf.nn.leaky_relu, name = 'h2_norm')
-        h3 = conv2d_layer(inputs = h2_norm, filters = num_filters * 8, strides = [1, 1], activation = None, name = 'h3_conv')
-        h3_norm = instance_norm_layer(inputs = h3, activation_fn = tf.nn.leaky_relu, name = 'h3_norm')
-        h4 = conv2d_layer(inputs = h3_norm, filters = 1, strides = [1, 1], activation = None, name = 'h4_conv')
+        h1 = conv1d_layer(inputs = inputs, filters = 128, kernel_size = 15, strides = 1, activation = None, name = 'h1_conv')
+        h1_gates = conv1d_layer(inputs = inputs, filters = 128, kernel_size = 15, strides = 1, activation = None, name = 'h1_conv_gates')
+        h1_glu = gated_linear_layer(inputs = h1, gates = h1_gates, name = 'h1_glu')
 
-        return h4
+        # Downsample
+        d1 = downsample1d_block(inputs = h1_glu, filters = 256, kernel_size = 5, strides = 2, name_prefix = 'downsample1d_block1_')
+        d2 = downsample1d_block(inputs = d1, filters = 512, kernel_size = 5, strides = 2, name_prefix = 'downsample1d_block2_')
+
+        # Residual blocks
+        r1 = residual1d_block(inputs = d2, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block1_')
+        r2 = residual1d_block(inputs = r1, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block2_')
+        r3 = residual1d_block(inputs = r2, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block3_')
+        r4 = residual1d_block(inputs = r3, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block4_')
+        r5 = residual1d_block(inputs = r4, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block5_')
+        r6 = residual1d_block(inputs = r5, filters = 1024, kernel_size = 3, strides = 1, name_prefix = 'residual1d_block6_')
+
+        # Upsample
+        u1 = upsample1d_block(inputs = r6, filters = 1024, kernel_size = 5, strides = 1, shuffle_size = 2, name_prefix = 'upsample1d_block1_')
+        u2 = upsample1d_block(inputs = u1, filters = 512, kernel_size = 5, strides = 1, shuffle_size = 2, name_prefix = 'upsample1d_block2_')
+
+        # Output
+        o1 = conv1d_layer(inputs = u2, filters = 24, kernel_size = 15, strides = 1, activation = None, name = 'o1_conv')
+        o2 = tf.transpose(o1, perm = [0, 2, 1], name = 'output_transpose')
+
+    return o2
+    
 
 
-def generator_resnet(inputs, num_filters = 64, output_channels = 3, reuse = False, scope_name = 'generator_resnet'):
+def discriminator(inputs, reuse = False, scope_name = 'discriminator'):
+
+    # inputs has shape [batch_size, num_features, time]
+    # we need to add channel for 2D convolution [batch_size, num_features, time, 1]
+    inputs = tf.expand_dims(inputs, -1)
 
     with tf.variable_scope(scope_name) as scope:
-
         # Discriminator would be reused in CycleGAN
         if reuse:
             scope.reuse_variables()
         else:
             assert scope.reuse is False
 
-        #output_channels = inputs.shape[-1]
+        h1 = conv2d_layer(inputs = inputs, filters = 128, kernel_size = [3, 3], strides = [1, 2], activation = None, name = 'h1_conv')
+        h1_gates = conv2d_layer(inputs = inputs, filters = 128, kernel_size = [3, 3], strides = [1, 2], activation = None, name = 'h1_conv_gates')
+        h1_glu = gated_linear_layer(inputs = h1, gates = h1_gates, name = 'h1_glu')
 
-        # Check tf.pad using 'REFLECT' mode
-        # https://www.tensorflow.org/api_docs/python/tf/pad
-        c0 = tf.pad(tensor = inputs, paddings = [[0, 0], [3, 3], [3, 3], [0, 0]], mode = 'REFLECT', name = 'c0_pad')
+        # Downsample
+        d1 = downsample2d_block(inputs = h1_glu, filters = 256, kernel_size = [3, 3], strides = [2, 2], name_prefix = 'downsample2d_block1_')
+        d2 = downsample2d_block(inputs = d1, filters = 512, kernel_size = [3, 3], strides = [2, 2], name_prefix = 'downsample2d_block2_')
+        d3 = downsample2d_block(inputs = d2, filters = 1024, kernel_size = [6, 3], strides = [1, 2], name_prefix = 'downsample2d_block3_')
 
-        c1 = conv2d_layer(inputs = c0, filters = num_filters, kernel_size = [7, 7], strides = [1, 1], padding = 'valid', activation = None, name = 'c1_conv')
+        # Output
+        o1 = tf.layers.dense(inputs = d3, units = 1, activation = tf.nn.sigmoid)
 
-        c1_norm = instance_norm_layer(inputs = c1, activation_fn = tf.nn.relu, name = 'c1_norm')
-
-        c2 = conv2d_layer(inputs = c1_norm, filters = num_filters * 2, kernel_size = [3, 3], strides = [2, 2], activation = None, name = 'c2_conv')
-        c2_norm = instance_norm_layer(inputs = c2, activation_fn = tf.nn.relu, name = 'c2_norm')
-        c3 = conv2d_layer(inputs = c2_norm, filters = num_filters * 4, kernel_size = [3, 3], strides = [2, 2], activation = None, name = 'c3_conv')
-        c3_norm = instance_norm_layer(inputs = c3, activation_fn = tf.nn.relu, name = 'c3_norm')
-
-
-        r1 = residual_block(inputs = c3_norm, filters = num_filters * 4, name_prefix = 'residual1_')
-        r2 = residual_block(inputs = r1, filters = num_filters * 4, name_prefix = 'residual2_')
-        r3 = residual_block(inputs = r2, filters = num_filters * 4, name_prefix = 'residual3_')
-        r4 = residual_block(inputs = r3, filters = num_filters * 4, name_prefix = 'residual4_')
-        r5 = residual_block(inputs = r4, filters = num_filters * 4, name_prefix = 'residual5_')
-        r6 = residual_block(inputs = r5, filters = num_filters * 4, name_prefix = 'residual6_')
-        r7 = residual_block(inputs = r6, filters = num_filters * 4, name_prefix = 'residual7_')
-        r8 = residual_block(inputs = r7, filters = num_filters * 4, name_prefix = 'residual8_')
-        r9 = residual_block(inputs = r8, filters = num_filters * 4, name_prefix = 'residual9_')
-
-        d1 = conv2d_transpose_layer(inputs = r9, filters = num_filters * 2, kernel_size = [3, 3], strides = [2, 2], name = 'd1_deconv')
-        d1_norm = instance_norm_layer(inputs = d1, activation_fn = tf.nn.relu, name = 'd1_norm')
-        d2 = conv2d_transpose_layer(inputs = d1_norm, filters = num_filters, kernel_size = [3, 3], strides = [2, 2], name = 'd2_deconv')
-        d2_norm = instance_norm_layer(inputs = d2, activation_fn = tf.nn.relu, name = 'd2_norm')
-        d2_pad = tf.pad(tensor = d2_norm, paddings = [[0, 0], [3, 3], [3, 3], [0, 0]], mode = 'REFLECT', name = 'd2_pad')
-        d3 = conv2d_layer(inputs = d2_pad, filters = output_channels, kernel_size = [7, 7], strides = [1, 1], padding = 'valid', activation = tf.nn.tanh, name = 'd3_conv')
-
-
-        return d3
-
-
-
-
+        return o1
 
