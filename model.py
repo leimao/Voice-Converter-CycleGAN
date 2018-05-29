@@ -7,14 +7,13 @@ from datetime import datetime
 
 class CycleGAN(object):
 
-    def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, lambda_cycle = 10, mode = 'train', log_dir = './log'):
+    def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, mode = 'train', log_dir = './log'):
 
         self.num_features = num_features
         self.input_shape = [None, num_features, None] # [batch_size, num_features, num_frames]
 
         self.discriminator = discriminator
         self.generator = generator
-        self.lambda_cycle = lambda_cycle
         self.mode = mode
 
         self.build_model()
@@ -44,14 +43,13 @@ class CycleGAN(object):
         self.input_B_test = tf.placeholder(tf.float32, shape = self.input_shape, name = 'input_B_test')
 
         self.generation_B = self.generator(inputs = self.input_A_real, reuse = False, scope_name = 'generator_A2B')
-        #print('================')
-        #print(self.generation_B.get_shape().as_list())
         self.cycle_A = self.generator(inputs = self.generation_B, reuse = False, scope_name = 'generator_B2A')
-        #print(self.cycle_A.get_shape().as_list())
-        #print('================')
 
         self.generation_A = self.generator(inputs = self.input_B_real, reuse = True, scope_name = 'generator_B2A')
         self.cycle_B = self.generator(inputs = self.generation_A, reuse = True, scope_name = 'generator_A2B')
+
+        self.generation_A_identity = self.generator(inputs = self.input_A_real, reuse = True, scope_name = 'generator_B2A')
+        self.generation_B_identity = self.generator(inputs = self.input_B_real, reuse = True, scope_name = 'generator_A2B')
 
         self.discrimination_A_fake = self.discriminator(inputs = self.generation_A, reuse = False, scope_name = 'discriminator_A')
         self.discrimination_B_fake = self.discriminator(inputs = self.generation_B, reuse = False, scope_name = 'discriminator_B')
@@ -59,13 +57,20 @@ class CycleGAN(object):
         # Cycle loss
         self.cycle_loss = l1_loss(y = self.input_A_real, y_hat = self.cycle_A) + l1_loss(y = self.input_B_real, y_hat = self.cycle_B)
 
+        # Identity loss
+        self.identity_loss = l1_loss(y = self.input_A_real, y_hat = self.generation_A_identity) + l1_loss(y = self.input_B_real, y_hat = self.generation_B_identity)
+
+        # Place holder for lambda_cycle and lambda_identity
+        self.lambda_cycle = tf.placeholder(tf.float32, None, name = 'lambda_cycle')
+        self.lambda_identity = tf.placeholder(tf.float32, None, name = 'lambda_identity')
+
         # Generator loss
         # Generator wants to fool discriminator
         self.generator_loss_A2B = l2_loss(y = tf.ones_like(self.discrimination_B_fake), y_hat = self.discrimination_B_fake)
         self.generator_loss_B2A = l2_loss(y = tf.ones_like(self.discrimination_A_fake), y_hat = self.discrimination_A_fake)
 
         # Merge the two generators and the cycle loss
-        self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss
+        self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss + self.lambda_identity * self.identity_loss
 
         # Discriminator loss
         self.discrimination_input_A_real = self.discriminator(inputs = self.input_A_real, reuse = True, scope_name = 'discriminator_A')
@@ -98,20 +103,21 @@ class CycleGAN(object):
 
     def optimizer_initializer(self):
 
-        self.learning_rate = tf.placeholder(tf.float32, None, name = 'learning_rate')
-        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate = self.learning_rate, beta1 = 0.5).minimize(self.discriminator_loss, var_list = self.discriminator_vars)
-        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate = self.learning_rate, beta1 = 0.5).minimize(self.generator_loss, var_list = self.generator_vars) 
+        self.generator_learning_rate = tf.placeholder(tf.float32, None, name = 'generator_learning_rate')
+        self.discriminator_learning_rate = tf.placeholder(tf.float32, None, name = 'discriminator_learning_rate')
+        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate = self.discriminator_learning_rate, beta1 = 0.5).minimize(self.discriminator_loss, var_list = self.discriminator_vars)
+        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate = self.generator_learning_rate, beta1 = 0.5).minimize(self.generator_loss, var_list = self.generator_vars) 
 
-    def train(self, input_A, input_B, learning_rate):
+    def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
 
         generation_A, generation_B, generator_loss, _, generator_summaries = self.sess.run(
             [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries], \
-            feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.learning_rate: learning_rate})
+            feed_dict = {self.lambda_cycle: lambda_cycle, self.lambda_identity: lambda_identity, self.input_A_real: input_A, self.input_B_real: input_B, self.generator_learning_rate: generator_learning_rate})
 
         self.writer.add_summary(generator_summaries, self.train_step)
 
         discriminator_loss, _, discriminator_summaries = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries], \
-            feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.learning_rate: learning_rate, self.input_A_fake: generation_A, self.input_B_fake: generation_B})
+            feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.discriminator_learning_rate: discriminator_learning_rate, self.input_A_fake: generation_A, self.input_B_fake: generation_B})
 
         self.writer.add_summary(discriminator_summaries, self.train_step)
 
@@ -149,10 +155,11 @@ class CycleGAN(object):
 
         with tf.name_scope('generator_summaries'):
             cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
+            identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            generator_summaries = tf.summary.merge([cycle_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
+            generator_summaries = tf.summary.merge([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)

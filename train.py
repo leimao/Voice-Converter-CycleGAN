@@ -1,88 +1,83 @@
 
 
 import tensorflow as tf
-import cv2
 import os
 import numpy as np
 import argparse
 import time
 
-from utils import load_data, sample_train_data, image_scaling, image_scaling_inverse
+from preprocess import load_wavs, wavs_to_mfccs, sample_train_data, mfccs_normalization
 from model import CycleGAN
 
-def train(img_A_dir, img_B_dir, model_dir, model_name, random_seed, validation_A_dir, validation_B_dir, output_dir):
+
+def train(voice_A_dir = './data/vcc2016_training/SF1', voice_B_dir = './data/vcc2016_training/TM1', model_dir = './model', model_name = 'female_male.ckpt', random_seed = 0):
 
     np.random.seed(random_seed)
 
-    num_epochs = 200
+    num_epochs = 2000
     mini_batch_size = 1 # mini_batch_size = 1 is better
-    learning_rate = 0.0002
-    input_size = [256, 256, 3]
-    num_filters = 8 
+    generator_learning_rate = 0.0002
+    discriminator_learning_rate = 0.0001
+    num_features = 24
+    sampling_rate = 16000
+    n_fft = 256
+    hop_length = n_fft // 4
+    n_mels = 128
+    n_mfcc = 24
+    n_frames = 128
+    lambda_cycle = 10
+    lambda_identity = 5
 
-    if validation_A_dir is not None:
-        validation_A_output_dir = os.path.join(output_dir, 'converted_A')
-        if not os.path.exists(validation_A_output_dir):
-            os.makedirs(validation_A_output_dir)
+    wavs_A = load_wavs(wav_dir = voice_A_dir, sr = sampling_rate)
+    wavs_B = load_wavs(wav_dir = voice_B_dir, sr = sampling_rate)
 
-    if validation_B_dir is not None:
-        validation_B_output_dir = os.path.join(output_dir, 'converted_B')
-        if not os.path.exists(validation_B_output_dir):
-            os.makedirs(validation_B_output_dir)
+    mfccs_A = wavs_to_mfccs(wavs = wavs_A, sr = sampling_rate, n_fft = n_fft, hop_length = hop_length, n_mels = n_mels, n_mfcc = n_mfcc)
+    mfccs_B = wavs_to_mfccs(wavs = wavs_B, sr = sampling_rate, n_fft = n_fft, hop_length = hop_length, n_mels = n_mels, n_mfcc = n_mfcc)
 
-    model = CycleGAN(input_size = input_size, num_filters = num_filters, mode = 'train')
+    mfccs_A_norm, mfccs_A_mean, mfccs_A_std = mfccs_normalization(mfccs = mfccs_A)
+    mfccs_B_norm, mfccs_B_mean, mfccs_B_std = mfccs_normalization(mfccs = mfccs_B)
 
-    dataset_A_raw = load_data(img_dir = img_A_dir, load_size = 256)
-    dataset_B_raw = load_data(img_dir = img_B_dir, load_size = 256)
+    model = CycleGAN(num_features = 24)
 
     for epoch in range(num_epochs):
         print('Epoch: %d' % epoch)
 
+        if epoch > 100:
+            lambda_identity = 0
+        if epoch > 200:
+            generator_learning_rate = max(0, generator_learning_rate - 0.0000002)
+            discriminator_learning_rate = max(0, discriminator_learning_rate - 0.0000001)
+
         start_time_epoch = time.time()
 
-        dataset_A, dataset_B = sample_train_data(dataset_A_raw, dataset_B_raw, load_size = 286, output_size = 256)
+        dataset_A, dataset_B = sample_train_data(dataset_A = mfccs_A_norm, dataset_B = mfccs_B_norm, n_frames = n_frames)
 
         n_samples = dataset_A.shape[0]
+
         for i in range(n_samples // mini_batch_size):
 
             start = i * mini_batch_size
             end = (i + 1) * mini_batch_size
 
-            generator_loss, discriminator_loss = model.train(input_A = dataset_A[start:end], input_B = dataset_B[start:end], learning_rate = learning_rate)
+            generator_loss, discriminator_loss = model.train(input_A = dataset_A[start:end], input_B = dataset_B[start:end], lambda_cycle = lambda_cycle, lambda_identity = lambda_identity, generator_learning_rate = generator_learning_rate, discriminator_learning_rate = discriminator_learning_rate)
 
             if i % 50 == 0:
                 print('Minibatch: %d, Generator Loss : %f, Discriminator Loss : %f' % (i, generator_loss, discriminator_loss))
 
         model.save(directory = model_dir, filename = model_name)
 
-        if validation_A_dir is not None:
-            for file in os.listdir(validation_A_dir):
-                filepath = os.path.join(validation_A_dir, file)
-                img = cv2.imread(filepath)
-                img_height, img_width, img_channel = img.shape
-                img = cv2.resize(img, (input_size[1], input_size[0]))
-                img = image_scaling(imgs = img)
-                img_converted = model.test(inputs = np.array([img]), direction = 'A2B')[0]
-                img_converted = image_scaling_inverse(imgs = img_converted)
-                img_converted = cv2.resize(img_converted, (img_width, img_height))
-                cv2.imwrite(os.path.join(validation_A_output_dir, os.path.basename(file)), img_converted)
-
-        if validation_B_dir is not None:
-            for file in os.listdir(validation_B_dir):
-                filepath = os.path.join(validation_B_dir, file)
-                img = cv2.imread(filepath)
-                img_height, img_width, img_channel = img.shape
-                img = cv2.resize(img, (input_size[1], input_size[0]))
-                img = image_scaling(imgs = img)
-                img_converted = model.test(inputs = np.array([img]), direction = 'B2A')[0]
-                img_converted = image_scaling_inverse(imgs = img_converted)
-                img_converted = cv2.resize(img_converted, (img_width, img_height))
-                cv2.imwrite(os.path.join(validation_B_output_dir, os.path.basename(file)), img_converted)
-
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
 
         print('Time Elapsed for This Epoch: %02d:%02d:%02d' % (time_elapsed_epoch // 3600, (time_elapsed_epoch % 3600 // 60), (time_elapsed_epoch % 60 // 1)))
+
+
+if __name__ == '__main__':
+
+    train()
+
+
+'''
 
 if __name__ == '__main__':
 
@@ -118,3 +113,4 @@ if __name__ == '__main__':
     output_dir = argv.output_dir
 
     train(img_A_dir = img_A_dir, img_B_dir = img_B_dir, model_dir = model_dir, model_name = model_name, random_seed = random_seed, validation_A_dir = validation_A_dir, validation_B_dir = validation_B_dir, output_dir = output_dir)
+'''
