@@ -11,7 +11,7 @@ def load_wavs(wav_dir, sr):
     for file in os.listdir(wav_dir):
         file_path = os.path.join(wav_dir, file)
         wav, _ = librosa.load(file_path, sr = sr, mono = True)
-        wav = wav.astype(np.float64)
+        #wav = wav.astype(np.float64)
         wavs.append(wav)
 
     return wavs
@@ -19,7 +19,7 @@ def load_wavs(wav_dir, sr):
 def world_decompose(wav, fs, frame_period = 5.0):
 
     # Decompose speech signal into f0, spectral envelope and aperiodicity using WORLD
-
+    wav = wav.astype(np.float64)
     f0, timeaxis = pyworld.harvest(wav, fs, frame_period = frame_period, f0_floor = 71.0, f0_ceil = 800.0)
     sp = pyworld.cheaptrick(wav, f0, timeaxis, fs)
     ap = pyworld.d4c(wav, f0, timeaxis, fs)
@@ -30,6 +30,7 @@ def world_encode_spectral_envelop(sp, fs, dim = 24):
 
     # Get Mel-cepstral coefficients (MCEPs)
 
+    #sp = sp.astype(np.float64)
     coded_sp = pyworld.code_spectral_envelope(sp, fs, dim)
 
     return coded_sp
@@ -37,6 +38,8 @@ def world_encode_spectral_envelop(sp, fs, dim = 24):
 def world_decode_spectral_envelop(coded_sp, fs):
 
     fftlen = pyworld.get_cheaptrick_fft_size(fs)
+    #coded_sp = coded_sp.astype(np.float32)
+    #coded_sp = np.ascontiguousarray(coded_sp)
     decoded_sp = pyworld.decode_spectral_envelope(coded_sp, fs, fftlen)
 
     return decoded_sp
@@ -83,7 +86,10 @@ def world_decode_data(coded_sps, fs):
 
 def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
 
+    #decoded_sp = decoded_sp.astype(np.float64)
     wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+    # Librosa could not save wav if not doing so
+    wav = wav.astype(np.float32)
 
     return wav
 
@@ -93,7 +99,7 @@ def world_synthesis_data(f0s, decoded_sps, aps, fs, frame_period):
     wavs = list()
 
     for f0, decoded_sp, ap in zip(f0s, decoded_sps, aps):
-        wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+        wav = world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period)
         wavs.append(wav)
 
     return wavs
@@ -126,6 +132,32 @@ def coded_sps_normalization_inverse_transoform(normalized_coded_sps, coded_sps_m
         coded_sps.append(normalized_coded_sp * coded_sps_std + coded_sps_mean)
 
     return coded_sps
+
+def coded_sp_padding(coded_sp, multiple = 4):
+
+    num_features = coded_sp.shape[0]
+    num_frames = coded_sp.shape[1]
+    num_frames_padded = int(np.ceil(num_frames / multiple)) * multiple
+    num_frames_diff = num_frames_padded - num_frames
+    num_pad_left = num_frames_diff // 2
+    num_pad_right = num_frames_diff - num_pad_left
+    coded_sp_padded = np.pad(coded_sp, ((0, 0), (num_pad_left, num_pad_right)), 'constant', constant_values = 0)
+
+    return coded_sp_padded
+
+def wav_padding(wav, sr, frame_period, multiple = 4):
+
+    assert wav.ndim == 1 
+    num_frames = len(wav)
+    num_frames_padded = int((np.ceil((np.floor(num_frames / (sr * frame_period / 1000)) + 1) / multiple + 1) * multiple - 1) * (sr * frame_period / 1000))
+    num_frames_diff = num_frames_padded - num_frames
+    num_pad_left = num_frames_diff // 2
+    num_pad_right = num_frames_diff - num_pad_left
+    wav_padded = np.pad(wav, (num_pad_left, num_pad_right), 'constant', constant_values = 0)
+
+    return wav_padded
+
+
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
 

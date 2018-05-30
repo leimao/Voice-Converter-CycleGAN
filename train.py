@@ -32,7 +32,7 @@ def train(train_A_dir = './data/vcc2016_training/SF1', train_B_dir = './data/vcc
     lambda_cycle = 10
     lambda_identity = 5
 
-    print('Preprocessing Data ...')
+    print('Preprocessing Data...')
 
     start_time = time.time()
 
@@ -48,12 +48,10 @@ def train(train_A_dir = './data/vcc2016_training/SF1', train_B_dir = './data/vcc
     coded_sps_A_norm, coded_sps_A_mean, coded_sps_A_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
     coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
 
-
     if validation_A_dir is not None:
         validation_A_output_dir = os.path.join(output_dir, 'converted_A')
         if not os.path.exists(validation_A_output_dir):
             os.makedirs(validation_A_output_dir)
-
 
     if validation_B_dir is not None:
         validation_B_output_dir = os.path.join(output_dir, 'converted_B')
@@ -96,45 +94,48 @@ def train(train_A_dir = './data/vcc2016_training/SF1', train_B_dir = './data/vcc
 
         model.save(directory = model_dir, filename = model_name)
 
-
-        if validation_A_dir is not None:
-            for file in os.listdir(validation_A_dir):
-                filepath = os.path.join(validation_A_dir, file)
-                wav, _ = librosa.load(file_path, sr = sampling_rate, mono = True)
-                wav = wav.astype(np.float64)
-                f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
-                coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
-                coded_sp_transposed = np.array([coded_sp.T])
-                coded_sp_norm = coded_sps_normalization_transoform(coded_sps = coded_sp_transposed, coded_sps_mean = coded_sps_A_mean, coded_sps_std = coded_sps_A_std)
-                coded_sp_converted_norm = model.test(inputs = coded_sp_norm, direction = 'A2B')[0]
-                coded_sp_converted = coded_sps_normalization_inverse_transoform(normalized_coded_sps = coded_sp_converted_norm, coded_sps_mean = coded_sps_A_mean, coded_sps_std = coded_sps_A_std)
-                coded_sp_converted = coded_sp_converted.T
-                decoded_sp_converted = world_decode_data(coded_sps = coded_sp_converted, fs = sampling_rate)
-                wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
-                librosa.output.write_wav(os.path.join(validation_A_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
-
-
-        if validation_B_dir is not None:
-            for file in os.listdir(validation_B_dir):
-                filepath = os.path.join(validation_B_dir, file)
-                wav, _ = librosa.load(file_path, sr = sampling_rate, mono = True)
-                wav = wav.astype(np.float64)
-                f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
-                coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
-                coded_sp_transposed = np.array([coded_sp.T])
-                coded_sp_norm = coded_sps_normalization_transoform(coded_sps = coded_sp_transposed, coded_sps_mean = coded_sps_B_mean, coded_sps_std = coded_sps_B_std)
-                coded_sp_converted_norm = model.test(inputs = coded_sp_norm, direction = 'B2A')[0]
-                coded_sp_converted = coded_sps_normalization_inverse_transoform(normalized_coded_sps = coded_sp_converted_norm, coded_sps_mean = coded_sps_B_mean, coded_sps_std = coded_sps_B_std)
-                coded_sp_converted = coded_sp_converted.T
-                decoded_sp_converted = world_decode_data(coded_sps = coded_sp_converted, fs = sampling_rate)
-                wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
-                librosa.output.write_wav(os.path.join(validation_B_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
-
-
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
 
         print('Time Elapsed for This Epoch: %02d:%02d:%02d' % (time_elapsed_epoch // 3600, (time_elapsed_epoch % 3600 // 60), (time_elapsed_epoch % 60 // 1)))
+
+        if validation_A_dir is not None:
+            if epoch % 50 == 0:
+                print('Generating Validation Data B from A...')
+                for file in os.listdir(validation_A_dir):
+                    filepath = os.path.join(validation_A_dir, file)
+                    wav, _ = librosa.load(filepath, sr = sampling_rate, mono = True)
+                    wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
+                    f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                    coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
+                    coded_sp_transposed = coded_sp.T
+                    coded_sp_norm = (coded_sp_transposed - coded_sps_A_mean) / coded_sps_A_std
+                    coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = 'A2B')[0]
+                    coded_sp_converted = coded_sp_converted_norm * coded_sps_A_std + coded_sps_A_mean
+                    coded_sp_converted = coded_sp_converted.T
+                    coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
+                    decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
+                    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                    librosa.output.write_wav(os.path.join(validation_A_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
+
+        if validation_B_dir is not None:
+            if epoch % 50 == 0:
+                print('Generating Validation Data A from B...')
+                for file in os.listdir(validation_B_dir):
+                    filepath = os.path.join(validation_B_dir, file)
+                    wav, _ = librosa.load(filepath, sr = sampling_rate, mono = True)
+                    wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
+                    f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                    coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
+                    coded_sp_transposed = coded_sp.T
+                    coded_sp_norm = (coded_sp_transposed - coded_sps_B_mean) / coded_sps_B_std
+                    coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = 'B2A')[0]
+                    coded_sp_converted = coded_sp_converted_norm * coded_sps_B_std + coded_sps_B_mean
+                    coded_sp_converted = coded_sp_converted.T
+                    coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
+                    decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
+                    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                    librosa.output.write_wav(os.path.join(validation_B_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
 
 if __name__ == '__main__':
