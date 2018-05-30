@@ -5,12 +5,14 @@ import os
 import numpy as np
 import argparse
 import time
+import librosa
 
-from preprocess import load_wavs, wavs_to_mfccs, sample_train_data, mfccs_normalization
+#from preprocess import load_wavs, world_decompose, world_encode_spectral_envelop, world_encode_data, sample_train_data, coded_sps_normalization_fit_transoform, transpose_in_list
+from preprocess import *
 from model import CycleGAN
 
 
-def train(voice_A_dir = './data/vcc2016_training/SF1', voice_B_dir = './data/vcc2016_training/TM1', model_dir = './model', model_name = 'female_male.ckpt', random_seed = 0):
+def train(train_A_dir = './data/vcc2016_training/SF1', train_B_dir = './data/vcc2016_training/TM1', model_dir = './model', model_name = 'female_male.ckpt', random_seed = 0, validation_A_dir = './data/evaluation_all/SF1', validation_B_dir = './data/evaluation_all/TM1', output_dir = './validation_output'):
 
     np.random.seed(random_seed)
 
@@ -24,20 +26,48 @@ def train(voice_A_dir = './data/vcc2016_training/SF1', voice_B_dir = './data/vcc
     hop_length = n_fft // 4
     n_mels = 128
     n_mfcc = 24
+    n_mcep = 24
+    frame_period = 5.0
     n_frames = 128
     lambda_cycle = 10
     lambda_identity = 5
 
-    wavs_A = load_wavs(wav_dir = voice_A_dir, sr = sampling_rate)
-    wavs_B = load_wavs(wav_dir = voice_B_dir, sr = sampling_rate)
+    print('Preprocessing Data ...')
 
-    mfccs_A = wavs_to_mfccs(wavs = wavs_A, sr = sampling_rate, n_fft = n_fft, hop_length = hop_length, n_mels = n_mels, n_mfcc = n_mfcc)
-    mfccs_B = wavs_to_mfccs(wavs = wavs_B, sr = sampling_rate, n_fft = n_fft, hop_length = hop_length, n_mels = n_mels, n_mfcc = n_mfcc)
+    start_time = time.time()
 
-    mfccs_A_norm, mfccs_A_mean, mfccs_A_std = mfccs_normalization(mfccs = mfccs_A)
-    mfccs_B_norm, mfccs_B_mean, mfccs_B_std = mfccs_normalization(mfccs = mfccs_B)
+    wavs_A = load_wavs(wav_dir = train_A_dir, sr = sampling_rate)
+    wavs_B = load_wavs(wav_dir = train_B_dir, sr = sampling_rate)
 
-    model = CycleGAN(num_features = 24)
+    f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs = wavs_A, fs = sampling_rate, frame_period = frame_period, coded_dim = n_mcep)
+    f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs = wavs_B, fs = sampling_rate, frame_period = frame_period, coded_dim = n_mcep)
+
+    coded_sps_A_transposed = transpose_in_list(lst = coded_sps_A)
+    coded_sps_B_transposed = transpose_in_list(lst = coded_sps_B)
+
+    coded_sps_A_norm, coded_sps_A_mean, coded_sps_A_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
+    coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
+
+
+    if validation_A_dir is not None:
+        validation_A_output_dir = os.path.join(output_dir, 'converted_A')
+        if not os.path.exists(validation_A_output_dir):
+            os.makedirs(validation_A_output_dir)
+
+
+    if validation_B_dir is not None:
+        validation_B_output_dir = os.path.join(output_dir, 'converted_B')
+        if not os.path.exists(validation_B_output_dir):
+            os.makedirs(validation_B_output_dir)
+
+    end_time = time.time()
+    time_elapsed = end_time - start_time
+
+    print('Preprocessing Done.')
+
+    print('Time Elapsed for Data Preprocessing: %02d:%02d:%02d' % (time_elapsed // 3600, (time_elapsed % 3600 // 60), (time_elapsed % 60 // 1)))
+
+    model = CycleGAN(num_features = n_mcep)
 
     for epoch in range(num_epochs):
         print('Epoch: %d' % epoch)
@@ -50,7 +80,7 @@ def train(voice_A_dir = './data/vcc2016_training/SF1', voice_B_dir = './data/vcc
 
         start_time_epoch = time.time()
 
-        dataset_A, dataset_B = sample_train_data(dataset_A = mfccs_A_norm, dataset_B = mfccs_B_norm, n_frames = n_frames)
+        dataset_A, dataset_B = sample_train_data(dataset_A = coded_sps_A_norm, dataset_B = coded_sps_B_norm, n_frames = n_frames)
 
         n_samples = dataset_A.shape[0]
 
@@ -65,6 +95,41 @@ def train(voice_A_dir = './data/vcc2016_training/SF1', voice_B_dir = './data/vcc
                 print('Minibatch: %d, Generator Loss : %f, Discriminator Loss : %f' % (i, generator_loss, discriminator_loss))
 
         model.save(directory = model_dir, filename = model_name)
+
+
+        if validation_A_dir is not None:
+            for file in os.listdir(validation_A_dir):
+                filepath = os.path.join(validation_A_dir, file)
+                wav, _ = librosa.load(file_path, sr = sampling_rate, mono = True)
+                wav = wav.astype(np.float64)
+                f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
+                coded_sp_transposed = np.array([coded_sp.T])
+                coded_sp_norm = coded_sps_normalization_transoform(coded_sps = coded_sp_transposed, coded_sps_mean = coded_sps_A_mean, coded_sps_std = coded_sps_A_std)
+                coded_sp_converted_norm = model.test(inputs = coded_sp_norm, direction = 'A2B')[0]
+                coded_sp_converted = coded_sps_normalization_inverse_transoform(normalized_coded_sps = coded_sp_converted_norm, coded_sps_mean = coded_sps_A_mean, coded_sps_std = coded_sps_A_std)
+                coded_sp_converted = coded_sp_converted.T
+                decoded_sp_converted = world_decode_data(coded_sps = coded_sp_converted, fs = sampling_rate)
+                wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                librosa.output.write_wav(os.path.join(validation_A_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
+
+
+        if validation_B_dir is not None:
+            for file in os.listdir(validation_B_dir):
+                filepath = os.path.join(validation_B_dir, file)
+                wav, _ = librosa.load(file_path, sr = sampling_rate, mono = True)
+                wav = wav.astype(np.float64)
+                f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = n_mcep)
+                coded_sp_transposed = np.array([coded_sp.T])
+                coded_sp_norm = coded_sps_normalization_transoform(coded_sps = coded_sp_transposed, coded_sps_mean = coded_sps_B_mean, coded_sps_std = coded_sps_B_std)
+                coded_sp_converted_norm = model.test(inputs = coded_sp_norm, direction = 'B2A')[0]
+                coded_sp_converted = coded_sps_normalization_inverse_transoform(normalized_coded_sps = coded_sp_converted_norm, coded_sps_mean = coded_sps_B_mean, coded_sps_std = coded_sps_B_std)
+                coded_sp_converted = coded_sp_converted.T
+                decoded_sp_converted = world_decode_data(coded_sps = coded_sp_converted, fs = sampling_rate)
+                wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                librosa.output.write_wav(os.path.join(validation_B_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
+
 
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch

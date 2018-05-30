@@ -2,6 +2,7 @@
 import librosa
 import numpy as np
 import os
+import pyworld
 
 
 def load_wavs(wav_dir, sr):
@@ -10,10 +11,121 @@ def load_wavs(wav_dir, sr):
     for file in os.listdir(wav_dir):
         file_path = os.path.join(wav_dir, file)
         wav, _ = librosa.load(file_path, sr = sr, mono = True)
+        wav = wav.astype(np.float64)
         wavs.append(wav)
 
     return wavs
 
+def world_decompose(wav, fs, frame_period = 5.0):
+
+    # Decompose speech signal into f0, spectral envelope and aperiodicity using WORLD
+
+    f0, timeaxis = pyworld.harvest(wav, fs, frame_period = frame_period, f0_floor = 71.0, f0_ceil = 800.0)
+    sp = pyworld.cheaptrick(wav, f0, timeaxis, fs)
+    ap = pyworld.d4c(wav, f0, timeaxis, fs)
+
+    return f0, timeaxis, sp, ap
+
+def world_encode_spectral_envelop(sp, fs, dim = 24):
+
+    # Get Mel-cepstral coefficients (MCEPs)
+
+    coded_sp = pyworld.code_spectral_envelope(sp, fs, dim)
+
+    return coded_sp
+
+def world_decode_spectral_envelop(coded_sp, fs):
+
+    fftlen = pyworld.get_cheaptrick_fft_size(fs)
+    decoded_sp = pyworld.decode_spectral_envelope(coded_sp, fs, fftlen)
+
+    return decoded_sp
+
+
+def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
+
+    f0s = list()
+    timeaxes = list()
+    sps = list()
+    aps = list()
+    coded_sps = list()
+
+    for wav in wavs:
+        f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
+        coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
+        f0s.append(f0)
+        timeaxes.append(timeaxis)
+        sps.append(sp)
+        aps.append(ap)
+        coded_sps.append(coded_sp)
+
+    return f0s, timeaxes, sps, aps, coded_sps
+
+
+def transpose_in_list(lst):
+
+    transposed_lst = list()
+    for array in lst:
+        transposed_lst.append(array.T)
+    return transposed_lst
+
+
+def world_decode_data(coded_sps, fs):
+
+    decoded_sps =  list()
+
+    for coded_sp in coded_sps:
+        decoded_sp = world_decode_spectral_envelop(coded_sp, fs)
+        decoded_sps.append(decoded_sp)
+
+    return decoded_sps
+
+
+def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
+
+    wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+
+    return wav
+
+
+def world_synthesis_data(f0s, decoded_sps, aps, fs, frame_period):
+
+    wavs = list()
+
+    for f0, decoded_sp, ap in zip(f0s, decoded_sps, aps):
+        wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+        wavs.append(wav)
+
+    return wavs
+
+
+def coded_sps_normalization_fit_transoform(coded_sps):
+
+    coded_sps_concatenated = np.concatenate(coded_sps, axis = 1)
+    coded_sps_mean = np.mean(coded_sps_concatenated, axis = 1, keepdims = True)
+    coded_sps_std = np.std(coded_sps_concatenated, axis = 1, keepdims = True)
+
+    coded_sps_normalized = list()
+    for coded_sp in coded_sps:
+        coded_sps_normalized.append((coded_sp - coded_sps_mean) / coded_sps_std)
+    
+    return coded_sps_normalized, coded_sps_mean, coded_sps_std
+
+def coded_sps_normalization_transoform(coded_sps, coded_sps_mean, coded_sps_std):
+
+    coded_sps_normalized = list()
+    for coded_sp in coded_sps:
+        coded_sps_normalized.append((coded_sp - coded_sps_mean) / coded_sps_std)
+    
+    return coded_sps_normalized
+
+def coded_sps_normalization_inverse_transoform(normalized_coded_sps, coded_sps_mean, coded_sps_std):
+
+    coded_sps = list()
+    for normalized_coded_sp in normalized_coded_sps:
+        coded_sps.append(normalized_coded_sp * coded_sps_std + coded_sps_mean)
+
+    return coded_sps
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
 
@@ -31,9 +143,6 @@ def wavs_to_mfccs(wavs, sr, n_fft = 1024, hop_length = None, n_mels = 128, n_mfc
     for wav in wavs:
         mfcc = librosa.feature.mfcc(y = wav, sr = sr, n_fft = n_fft, hop_length = hop_length, n_mels = n_mels, n_mfcc = n_mfcc)
         mfccs.append(mfcc)
-        #print('-----------')
-        #print(mfcc.shape)
-        #print('-----------')
 
     return mfccs
 
@@ -73,9 +182,6 @@ def sample_train_data(dataset_A, dataset_B, n_frames = 128):
         train_data_A.append(data_A[:,start_A:end_A])
 
         data_B = dataset_B[idx_B]
-        #print('============')
-        #print(data_B.shape)
-        #print('============')
         frames_B_total = data_B.shape[1]
         assert frames_B_total >= n_frames
         start_B = np.random.randint(frames_B_total - n_frames + 1)
