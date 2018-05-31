@@ -167,7 +167,7 @@ def logf0_statistics(f0s):
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
 
     # Logarithm Gaussian normalization for Pitch Conversions
-    f0_converted = np.exp((np.log(f0) - mean_src) / std_src * std_target + mean_src)
+    f0_converted = np.exp((np.log(f0) - mean_log_src) / std_log_src * std_log_target + mean_log_src)
 
     return f0_converted
 
