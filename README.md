@@ -20,7 +20,116 @@ Cycle-consistent adversarial networks (CycleGAN) has been widely used for image 
 * [PyWorld](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder)
 
 
+## Usage
 
+### Download Dataset
+
+Download and unzip [vcc2016](https://datashare.is.ed.ac.uk/handle/10283/2211) dataset to designated directories.
+
+```bash
+$ python download.py --help
+usage: download.py [-h] [--download_dir DOWNLOAD_DIR] [--data_dir DATA_DIR]
+                   [--datasets DATASETS]
+
+Download CycleGAN voice conversion datasets.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --download_dir DOWNLOAD_DIR
+                        Download directory for zipped data
+  --data_dir DATA_DIR   Data directory for unzipped data
+  --datasets DATASETS   Datasets available: vcc2016
+```
+
+For example, to download the datasets to ``download`` directory and extract to ``data`` directory:
+
+```bash
+$ python download.py --download_dir ./download --data_dir ./data --datasets vcc2016
+```
+
+### Train Model
+
+To have a good conversion capability, the training would take at least 1000 epochs, which could take very long time even using a NVIDIA GTX TITAN X graphic card. 
+
+```bash
+$ python train.py --help
+usage: train.py [-h] [--train_A_dir TRAIN_A_DIR] [--train_B_dir TRAIN_B_DIR]
+                [--model_dir MODEL_DIR] [--model_name MODEL_NAME]
+                [--random_seed RANDOM_SEED]
+                [--validation_A_dir VALIDATION_A_DIR]
+                [--validation_B_dir VALIDATION_B_DIR]
+                [--output_dir OUTPUT_DIR]
+                [--tensorboard_log_dir TENSORBOARD_LOG_DIR]
+
+Train CycleGAN model for datasets.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --train_A_dir TRAIN_A_DIR
+                        Directory for A.
+  --train_B_dir TRAIN_B_DIR
+                        Directory for B.
+  --model_dir MODEL_DIR
+                        Directory for saving models.
+  --model_name MODEL_NAME
+                        File name for saving model.
+  --random_seed RANDOM_SEED
+                        Random seed for model training.
+  --validation_A_dir VALIDATION_A_DIR
+                        Convert validation A after each training epoch. If set
+                        none, no conversion would be done during the training.
+  --validation_B_dir VALIDATION_B_DIR
+                        Convert validation B after each training epoch. If set
+                        none, no conversion would be done during the training.
+  --output_dir OUTPUT_DIR
+                        Output directory for converted validation voices.
+  --tensorboard_log_dir TENSORBOARD_LOG_DIR
+                        TensorBoard log directory.
+```
+
+For example, to train CycleGAN model for voice conversion between ``SF1`` and ``TM1``:
+
+```bash
+$ python train.py --train_A_dir ./data/vcc2016_training/SF1 --train_B_dir ./data/vcc2016_training/TM1 --model_dir ./model/sf1_tm1 --model_name sf1_tm1.ckpt --random_seed 0 --validation_A_dir ./data/evaluation_all/SF1 --validation_B_dir ./data/evaluation_all/TM1 --output_dir ./validation_output --tensorboard_log_dir ./log
+```
+With ``validation_A_dir``, ``validation_B_dir``, and ``output_dir`` set, we could monitor the conversion of validation voices after each epoch using our bare ear. 
+
+### Voice Conversion
+
+Convert voices using pre-trained models.
+
+```bash
+$ python convert.py --help
+usage: convert.py [-h] [--model_dir MODEL_DIR] [--model_name MODEL_NAME]
+                  [--data_dir DATA_DIR]
+                  [--conversion_direction CONVERSION_DIRECTION]
+                  [--output_dir OUTPUT_DIR]
+
+Convert voices using pre-trained CycleGAN model.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --model_dir MODEL_DIR
+                        Directory for the pre-trained model.
+  --model_name MODEL_NAME
+                        Filename for the pre-trained model.
+  --data_dir DATA_DIR   Directory for the voices for conversion.
+  --conversion_direction CONVERSION_DIRECTION
+                        Conversion direction for CycleGAN. A2B or B2A. The
+                        first object in the model file name is A, and the
+                        second object in the model file name is B.
+  --output_dir OUTPUT_DIR
+                        Directory for the converted voices.
+```
+
+To convert voice, put wav-formed speeches into ``data_dir`` and run the following commands in the terminal, the converted speeches would be saved in the ``output_dir``:
+
+```bash
+$ python convert.py --model_dir ./model/sf1_tm1 --model_name sf1_tm1.ckpt --data_dir ./data/evaluation_all/SF1 --conversion_direction A2B --output_dir ./converted_voices
+```
+The convention for ``conversion_direction`` is first object in the model file name is A, and the second object in the model file name is B. In this case, ``SF1 = A`` and ``TM1 = B``.
+
+## Demo
 
 
 
