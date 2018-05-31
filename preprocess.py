@@ -156,6 +156,20 @@ def wav_padding(wav, sr, frame_period, multiple = 4):
     return wav_padded
 
 
+def logf0_statistics(f0s):
+
+    log_f0s_concatenated = np.ma.log(np.concatenate(f0s))
+    log_f0s_mean = log_f0s_concatenated.mean()
+    log_f0s_std = log_f0s_concatenated.std()
+
+    return log_f0s_mean, log_f0s_std
+
+def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
+
+    # Logarithm Gaussian normalization for Pitch Conversions
+    f0_converted = np.exp((np.log(f0) - mean_src) / std_src * std_target + mean_src)
+
+    return f0_converted
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
 

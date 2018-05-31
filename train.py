@@ -38,13 +38,19 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
     f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs = wavs_A, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
     f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs = wavs_B, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
 
+    log_f0s_mean_A, log_f0s_std_A = logf0_statistics(f0s_A)
+    log_f0s_mean_B, log_f0s_std_B = logf0_statistics(f0s_B)
+
     coded_sps_A_transposed = transpose_in_list(lst = coded_sps_A)
     coded_sps_B_transposed = transpose_in_list(lst = coded_sps_B)
 
     coded_sps_A_norm, coded_sps_A_mean, coded_sps_A_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
     coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
 
-    np.savez(os.path.join(model_dir, 'normalization.npz'), mean_A = coded_sps_A_mean, std_A = coded_sps_A_std, mean_B = coded_sps_B_mean, std_B = coded_sps_B_std)
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    np.savez(os.path.join(model_dir, 'logf0s_normalization.npz'), mean_A = log_f0s_mean_A, std_A = log_f0s_std_A, mean_B = log_f0s_mean_B, std_B = log_f0s_std_B)
+    np.savez(os.path.join(model_dir, 'mcep_normalization.npz'), mean_A = coded_sps_A_mean, std_A = coded_sps_A_std, mean_B = coded_sps_B_mean, std_B = coded_sps_B_std)
 
     if validation_A_dir is not None:
         validation_A_output_dir = os.path.join(output_dir, 'converted_A')
@@ -105,6 +111,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                     wav, _ = librosa.load(filepath, sr = sampling_rate, mono = True)
                     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
                     f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                    f0_converted = pitch_conversion(f0 = f0, mean_log_src = log_f0s_mean_A, std_log_src = log_f0s_std_A, mean_log_target = log_f0s_mean_B, std_log_target = log_f0s_std_B)
                     coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = num_mcep)
                     coded_sp_transposed = coded_sp.T
                     coded_sp_norm = (coded_sp_transposed - coded_sps_A_mean) / coded_sps_A_std
@@ -113,7 +120,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                     coded_sp_converted = coded_sp_converted.T
                     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
                     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
-                    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                    wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
                     librosa.output.write_wav(os.path.join(validation_A_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
         if validation_B_dir is not None:
@@ -124,6 +131,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                     wav, _ = librosa.load(filepath, sr = sampling_rate, mono = True)
                     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
                     f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+                    f0_converted = pitch_conversion(f0 = f0, mean_log_src = log_f0s_mean_B, std_log_src = log_f0s_std_B, mean_log_target = log_f0s_mean_A, std_log_target = log_f0s_std_A)
                     coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = num_mcep)
                     coded_sp_transposed = coded_sp.T
                     coded_sp_norm = (coded_sp_transposed - coded_sps_B_mean) / coded_sps_B_std
@@ -132,7 +140,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                     coded_sp_converted = coded_sp_converted.T
                     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
                     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
-                    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+                    wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
                     librosa.output.write_wav(os.path.join(validation_B_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
 if __name__ == '__main__':

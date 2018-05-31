@@ -11,15 +11,21 @@ def conversion(model_dir, model_name, data_dir, conversion_direction, output_dir
     sampling_rate = 16000
     frame_period = 5.0
 
-    model = CycleGAN(input_size = input_size, num_filters = num_filters, mode = 'test')
+    model = CycleGAN(num_features = num_features, mode = 'test')
 
     model.load(filepath = os.path.join(model_dir, model_name))
 
-    normalization_params = np.load(os.path.join(model_dir, 'normalization.npz'))
-    mean_A = normalization_params['mean_A']
-    std_A = normalization_params['std_A']
-    mean_B = normalization_params['mean_B']
-    std_B = normalization_params['std_B']
+    mcep_normalization_params = np.load(os.path.join(model_dir, 'mcep_normalization.npz'))
+    mcep_mean_A = mcep_normalization_params['mean_A']
+    mcep_std_A = mcep_normalization_params['std_A']
+    mcep_mean_B = mcep_normalization_params['mean_B']
+    mcep_std_B = mcep_normalization_params['std_B']
+
+    logf0s_normalization_params = np.load(os.path.join(model_dir, 'logf0s_normalization.npz'))
+    logf0s_mean_A = logf0s_normalization_params['mean_A']
+    logf0s_std_A = logf0s_normalization_params['std_A']
+    logf0s_mean_B = logf0s_normalization_params['mean_B']
+    logf0s_std_B = logf0s_normalization_params['std_B']
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -34,18 +40,20 @@ def conversion(model_dir, model_name, data_dir, conversion_direction, output_dir
         coded_sp_transposed = coded_sp.T
 
         if conversion_direction == 'A2B':
-            coded_sp_norm = (coded_sp_transposed - mean_A) / std_A
+            f0_converted = pitch_conversion(f0 = f0, mean_log_src = log_f0s_mean_A, std_log_src = log_f0s_std_A, mean_log_target = log_f0s_mean_B, std_log_target = log_f0s_std_B)
+            coded_sp_norm = (coded_sp_transposed - mcep_mean_A) / mcep_std_A
             coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = conversion_direction)[0]
-            coded_sp_converted = coded_sp_converted_norm * std_B + mean_B
+            coded_sp_converted = coded_sp_converted_norm * mcep_std_B + mcep_mean_B
         else:
-            coded_sp_norm = (coded_sp_transposed - mean_B) / std_B
+            f0_converted = pitch_conversion(f0 = f0, mean_log_src = log_f0s_mean_B, std_log_src = log_f0s_std_B, mean_log_target = log_f0s_mean_A, std_log_target = log_f0s_std_A)
+            coded_sp_norm = (coded_sp_transposed - mcep_mean_B) / mcep_std_B
             coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = conversion_direction)[0]
-            coded_sp_converted = coded_sp_converted_norm * std_A + mean_A
+            coded_sp_converted = coded_sp_converted_norm * mcep_std_A + mcep_mean_A
 
         coded_sp_converted = coded_sp_converted.T
         coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
         decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
-        wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+        wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
         librosa.output.write_wav(os.path.join(output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
 
@@ -63,7 +71,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type = str, help = 'Filename for the pre-trained model.', default = model_name_default)
     parser.add_argument('--data_dir', type = str, help = 'Directory for the voices for conversion.', default = data_dir_default)
     parser.add_argument('--conversion_direction', type = str, help = 'Conversion direction for CycleGAN. A2B or B2A. The first object in the model file name is A, and the second object in the model file name is B.', default = conversion_direction_default)
-    parser.add_argument('--output_dir', type = str, help = 'Directory for the converted images.', default = output_dir_default)
+    parser.add_argument('--output_dir', type = str, help = 'Directory for the converted voices.', default = output_dir_default)
 
     argv = parser.parse_args()
 
