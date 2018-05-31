@@ -1,6 +1,4 @@
-
 import tensorflow as tf 
-
 
 def gated_linear_layer(inputs, gates, name = None):
 
@@ -65,7 +63,6 @@ def conv2d_layer(
 
     return conv_layer
 
-
 def residual1d_block(
     inputs, 
     filters = 1024, 
@@ -112,8 +109,6 @@ def downsample2d_block(
 
     return h1_glu
 
-
-
 def upsample1d_block(
     inputs, 
     filters, 
@@ -130,31 +125,8 @@ def upsample1d_block(
 
     return h2_glu
 
-'''
-def pixel_shuffler(inputs, size = [1, 2], name = None):
-
-    # Not exactly verified
-    n, h, w, c = inputs.get_shape().as_list()
-    rh, rw = size
-    oh = h * rh
-    ow = w * rw
-    oc = c // (rh * rw)
-
-    outputs = tf.reshape(tensor = inputs, shape = [n, rh, rw, h, w, oc])
-    outputs = tf.transpose(outputs, perm = [0, 3, 1, 4, 2, 5])
-    outputs = tf.reshape(tensor = outputs, shape = [n, oh, ow, oc], name = name)
-
-    return outputs
-'''
-
-
 def pixel_shuffler(inputs, shuffle_size = 2, name = None):
 
-    #print('-----------------------')
-    #print(inputs.get_shape().as_list())
-    #print('-----------------------')
-
-    #n, w, c = inputs.get_shape().as_list()
     n = tf.shape(inputs)[0]
     w = tf.shape(inputs)[1]
     c = inputs.get_shape().as_list()[2]
@@ -162,13 +134,7 @@ def pixel_shuffler(inputs, shuffle_size = 2, name = None):
     oc = c // shuffle_size
     ow = w * shuffle_size
 
-    #outputs = tf.reshape(tensor = inputs, shape = [-1, ow, oc], name = name)
-
     outputs = tf.reshape(tensor = inputs, shape = [n, ow, oc], name = name)
-    #print('-----------------------')
-    #print('Here')
-    #print(outputs.get_shape().as_list())
-    #print('-----------------------')
 
     return outputs
 
@@ -177,7 +143,6 @@ def generator_gatedcnn(inputs, reuse = False, scope_name = 'generator_gatedcnn')
     # inputs has shape [batch_size, num_features, time]
     # we need to convert it to [batch_size, time, num_features] for 1D convolution
     inputs = tf.transpose(inputs, perm = [0, 2, 1], name = 'input_transpose')
-    #print(inputs.get_shape().as_list())
 
     with tf.variable_scope(scope_name) as scope:
         # Discriminator would be reused in CycleGAN
@@ -212,7 +177,6 @@ def generator_gatedcnn(inputs, reuse = False, scope_name = 'generator_gatedcnn')
 
     return o2
     
-
 
 def discriminator(inputs, reuse = False, scope_name = 'discriminator'):
 

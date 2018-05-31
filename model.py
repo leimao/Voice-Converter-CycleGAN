@@ -1,4 +1,3 @@
-
 import os
 import tensorflow as tf
 from module import discriminator, generator_gatedcnn
