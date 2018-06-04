@@ -12,16 +12,13 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
 
     np.random.seed(random_seed)
 
-    num_epochs = 2000
+    num_epochs = 5000
     mini_batch_size = 1 # mini_batch_size = 1 is better
     generator_learning_rate = 0.0002
+    generator_learning_rate_decay = generator_learning_rate / 200000
     discriminator_learning_rate = 0.0001
-    #num_features = 24
+    discriminator_learning_rate_decay = discriminator_learning_rate / 200000
     sampling_rate = 16000
-    #n_fft = 256
-    #hop_length = n_fft // 4
-    #n_mels = 128
-    #n_mfcc = 24
     num_mcep = 24
     frame_period = 5.0
     n_frames = 128
@@ -51,7 +48,8 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
     coded_sps_B_transposed = transpose_in_list(lst = coded_sps_B)
 
     coded_sps_A_norm, coded_sps_A_mean, coded_sps_A_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
-    coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_A_transposed)
+    print("Input data fixed.")
+    coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(coded_sps = coded_sps_B_transposed)
 
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
@@ -79,12 +77,13 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
 
     for epoch in range(num_epochs):
         print('Epoch: %d' % epoch)
-
-        if epoch > 100:
+        '''
+        if epoch > 60:
             lambda_identity = 0
-        if epoch > 200:
+        if epoch > 1250:
             generator_learning_rate = max(0, generator_learning_rate - 0.0000002)
             discriminator_learning_rate = max(0, discriminator_learning_rate - 0.0000001)
+        '''
 
         start_time_epoch = time.time()
 
@@ -94,13 +93,22 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
 
         for i in range(n_samples // mini_batch_size):
 
+            num_iterations = n_samples // mini_batch_size * epoch + i
+
+            if num_iterations > 10000:
+                lambda_identity = 0
+            if num_iterations > 200000:
+                generator_learning_rate = max(0, generator_learning_rate - generator_learning_rate_decay)
+                discriminator_learning_rate = max(0, discriminator_learning_rate - discriminator_learning_rate_decay)
+
             start = i * mini_batch_size
             end = (i + 1) * mini_batch_size
 
             generator_loss, discriminator_loss = model.train(input_A = dataset_A[start:end], input_B = dataset_B[start:end], lambda_cycle = lambda_cycle, lambda_identity = lambda_identity, generator_learning_rate = generator_learning_rate, discriminator_learning_rate = discriminator_learning_rate)
 
             if i % 50 == 0:
-                print('Minibatch: %d, Generator Loss : %f, Discriminator Loss : %f' % (i, generator_loss, discriminator_loss))
+                #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
+                print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
         model.save(directory = model_dir, filename = model_name)
 
@@ -154,12 +162,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Train CycleGAN model for datasets.')
 
     train_A_dir_default = './data/vcc2016_training/SF1'
-    train_B_dir_default = './data/vcc2016_training/TM1'
-    model_dir_default = './model/sf1_tm1'
-    model_name_default = 'sf1_tm1.ckpt'
+    train_B_dir_default = './data/vcc2016_training/TF2'
+    model_dir_default = './model/sf1_tf2'
+    model_name_default = 'sf1_tf2.ckpt'
     random_seed_default = 0
     validation_A_dir_default = './data/evaluation_all/SF1'
-    validation_B_dir_default = './data/evaluation_all/TM1'
+    validation_B_dir_default = './data/evaluation_all/TF2'
     output_dir_default = './validation_output'
     tensorboard_log_dir_default = './log'
 
