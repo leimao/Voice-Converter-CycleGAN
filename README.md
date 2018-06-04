@@ -127,7 +127,7 @@ To convert voice, put wav-formed speeches into ``data_dir`` and run the followin
 ```bash
 $ python convert.py --model_dir ./model/sf1_tm1 --model_name sf1_tm1.ckpt --data_dir ./data/evaluation_all/SF1 --conversion_direction A2B --output_dir ./converted_voices
 ```
-The convention for ``conversion_direction`` is first object in the model file name is A, and the second object in the model file name is B. In this case, ``SF1 = A`` and ``TM1 = B``.
+The convention for ``conversion_direction`` is that the first object in the model filename is A, and the second object in the model filename is B. In this case, ``SF1 = A`` and ``TM1 = B``.
 
 ## Demo
 
