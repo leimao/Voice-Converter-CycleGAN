@@ -92,7 +92,18 @@ For example, to train CycleGAN model for voice conversion between ``SF1`` and ``
 ```bash
 $ python train.py --train_A_dir ./data/vcc2016_training/SF1 --train_B_dir ./data/vcc2016_training/TM1 --model_dir ./model/sf1_tm1 --model_name sf1_tm1.ckpt --random_seed 0 --validation_A_dir ./data/evaluation_all/SF1 --validation_B_dir ./data/evaluation_all/TM1 --output_dir ./validation_output --tensorboard_log_dir ./log
 ```
+
+
+<p align="center">
+    <img src = "./figures/discriminator_discriminator.png" width="100%">
+</p>
+
+<p align="center">
+    <img src = "./figures/cycle_identity.png" width="100%">
+</p>
+
 With ``validation_A_dir``, ``validation_B_dir``, and ``output_dir`` set, we could monitor the conversion of validation voices after each epoch using our bare ear. 
+
 
 ### Voice Conversion
 
