@@ -172,7 +172,7 @@ In the ``demo`` directory, there are voice conversions between the validation da
 
 The conversion performance is extremely good and the converted speech sounds real to me.
 
-Download the pre-trained [SF1-TF2]() conversion model from Google Drive.
+Download the pre-trained SF1-TF2 conversion model and conversion of all the validation samples from [Google Drive](https://drive.google.com/open?id=1WWpxSaHZ79v5YwByEhVzu8zyE4v3UJw2).
 
 ## Reference
 
@@ -188,5 +188,6 @@ Download the pre-trained [SF1-TF2]() conversion model from Google Drive.
 
 - [ ] Parallelize data preprocessing
 - [ ] Evaluation metrics
-- [ ] Hyper parameter tuning
-- [ ] Argparse
+- [x] Hyper parameter tuning
+- [ ] Train more conversion models
+- [x] Argparse
