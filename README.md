@@ -36,7 +36,6 @@ Cycle-consistent adversarial networks (CycleGAN) has been widely used for image 
 ├── train_log
 ├── train.py
 └── utils.py
-
 ```
 
 ## Usage
