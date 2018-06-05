@@ -113,11 +113,11 @@ $ python train.py --train_A_dir ./data/vcc2016_training/SF1 --train_B_dir ./data
 
 
 <p align="center">
-    <img src = "./figures/discriminator_discriminator.png" width="90%">
+    <img src = "./train_log/discriminator_discriminator.png" width="90%">
 </p>
 
 <p align="center">
-    <img src = "./figures/cycle_identity.png" width="90%">
+    <img src = "./train_log/cycle_identity.png" width="90%">
 </p>
 
 With ``validation_A_dir``, ``validation_B_dir``, and ``output_dir`` set, we could monitor the conversion of validation voices after each epoch using our bare ear. 
