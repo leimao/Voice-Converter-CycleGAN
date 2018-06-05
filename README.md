@@ -166,7 +166,7 @@ In the ``demo`` directory, there are voice conversions between the validation da
 
 ``200001_SF1toTF2.wav`` and ``200001_TF2.wav`` are the converted voice using the pre-trained model.
 
-``200001_SF1toTF2_author.wav`` is the converted voice from [NTT](http://www.kecl.ntt.co.jp/people/kaneko.takuhiro/projects/cyclegan-vc/) website for comparison with our model performance.
+``200001_SF1toTF2_author.wav`` is the converted voice from the [NTT](http://www.kecl.ntt.co.jp/people/kaneko.takuhiro/projects/cyclegan-vc/) website for comparison with our model performance.
 
 
 ## Reference
