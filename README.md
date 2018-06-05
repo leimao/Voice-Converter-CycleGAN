@@ -168,6 +168,7 @@ In the ``demo`` directory, there are voice conversions between the validation da
 
 ``200001_SF1toTF2_author.wav`` is the converted voice from the [NTT](http://www.kecl.ntt.co.jp/people/kaneko.takuhiro/projects/cyclegan-vc/) website for comparison with our model performance.
 
+The conversion performance is extremely good and the converted speech sounds real to me.
 
 ## Reference
 
