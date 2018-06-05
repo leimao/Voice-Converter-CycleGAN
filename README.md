@@ -20,6 +20,25 @@ Cycle-consistent adversarial networks (CycleGAN) has been widely used for image 
 * [PyWorld](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder)
 
 
+## Files
+
+```
+.
+├── convert.py
+├── demo
+├── download.py
+├── figures
+├── LICENSE.md
+├── model.py
+├── module.py
+├── preprocess.py
+├── README.md
+├── train_log
+├── train.py
+└── utils.py
+
+```
+
 ## Usage
 
 ### Download Dataset
@@ -142,9 +161,13 @@ The convention for ``conversion_direction`` is that the first object in the mode
 
 ## Demo
 
+In the ``demo`` directory, there are voice conversions between the validation data of ``SF1`` and ``TF2`` using the pre-trained model.
 
+``200001_SF1.wav`` and ``200001_TF2.wav`` are real voices for the same speech from ``SF1`` and ``TF2``, respectively.
 
+``200001_SF1toTF2.wav`` and ``200001_TF2.wav`` are the converted voice using the pre-trained model.
 
+``200001_SF1toTF2_author.wav`` is the converted voice from [NTT](http://www.kecl.ntt.co.jp/people/kaneko.takuhiro/projects/cyclegan-vc/) website for comparison with our model performance.
 
 
 ## Reference
