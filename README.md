@@ -42,7 +42,7 @@ Cycle-consistent adversarial networks (CycleGAN) has been widely used for image 
 
 ### Download Dataset
 
-Download and unzip [vcc2016](https://datashare.is.ed.ac.uk/handle/10283/2211) dataset to designated directories.
+Download and unzip [VCC2016](https://datashare.is.ed.ac.uk/handle/10283/2211) dataset to designated directories.
 
 ```bash
 $ python download.py --help
@@ -160,6 +160,8 @@ The convention for ``conversion_direction`` is that the first object in the mode
 
 ## Demo
 
+### VCC2016 SF1 and TF2 Conversion
+
 In the ``demo`` directory, there are voice conversions between the validation data of ``SF1`` and ``TF2`` using the pre-trained model.
 
 ``200001_SF1.wav`` and ``200001_TF2.wav`` are real voices for the same speech from ``SF1`` and ``TF2``, respectively.
@@ -169,6 +171,8 @@ In the ``demo`` directory, there are voice conversions between the validation da
 ``200001_SF1toTF2_author.wav`` is the converted voice from the [NTT](http://www.kecl.ntt.co.jp/people/kaneko.takuhiro/projects/cyclegan-vc/) website for comparison with our model performance.
 
 The conversion performance is extremely good and the converted speech sounds real to me.
+
+Download the pre-trained [SF1-TF2]() conversion model from Google Drive.
 
 ## Reference
 
