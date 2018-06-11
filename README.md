@@ -174,6 +174,9 @@ The conversion performance is extremely good and the converted speech sounds rea
 
 Download the pre-trained SF1-TF2 conversion model and conversion of all the validation samples from [Google Drive](https://drive.google.com/open?id=1SwiK9X3crXU4_-aM_-Sff1T82d6-1SEg).
 
+<audio src="./demo/200001_SF1.wav" controls preload></audio>
+
+
 ## Reference
 
 * Takuhiro Kaneko, Hirokazu Kameoka. Parallel-Data-Free Voice Conversion Using Cycle-Consistent Adversarial Networks. 2017. (Voice Conversion CycleGAN)
