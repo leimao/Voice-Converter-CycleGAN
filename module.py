@@ -15,7 +15,7 @@ def instance_norm_layer(
     instance_norm_layer = tf.contrib.layers.instance_norm(
         inputs = inputs,
         epsilon = epsilon,
-        activation_fn = activation_fn)
+        activation_fn = activation_fn, name=name)
 
     return instance_norm_layer
 
