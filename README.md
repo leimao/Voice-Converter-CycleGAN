@@ -45,6 +45,14 @@ Cycle-consistent adversarial networks (CycleGAN) has been widely used for image 
 
 ## Usage
 
+### Docker Container
+
+```bash
+$ docker build --rm -t tensorflow-cyclegan-vc:1.0 -f Dockerfile .
+$ nvidia-docker run -it --rm -v $(pwd):/mnt tensorflow-cyclegan-vc:1.0
+```
+
+
 ### Download Dataset
 
 Download and unzip [VCC2016](https://datashare.is.ed.ac.uk/handle/10283/2211) dataset to designated directories.
