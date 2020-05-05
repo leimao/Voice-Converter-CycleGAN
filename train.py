@@ -219,8 +219,6 @@ if __name__ == '__main__':
     model_dir_default = './model/sf1_tf2'
     model_name_default = 'sf1_tf2.ckpt'
     random_seed_default = 0
-    validation_A_dir_default = './data/evaluation_all/SF1'
-    validation_B_dir_default = './data/evaluation_all/TF2'
     output_dir_default = './validation_output'
     tensorboard_log_dir_default = './log'
 
@@ -235,9 +233,9 @@ if __name__ == '__main__':
     parser.add_argument('--random_seed', type=int,
                         help='Random seed for model training.', default=random_seed_default)
     parser.add_argument('--validation_A_dir', type=str,
-                        help='Convert validation A after each training epoch. If set none, no conversion would be done during the training.', default=validation_A_dir_default)
+                        help='Convert validation A after each training epoch. If set none, no conversion would be done during the training.')
     parser.add_argument('--validation_B_dir', type=str,
-                        help='Convert validation B after each training epoch. If set none, no conversion would be done during the training.', default=validation_B_dir_default)
+                        help='Convert validation B after each training epoch. If set none, no conversion would be done during the training.')
     parser.add_argument('--output_dir', type=str,
                         help='Output directory for converted validation voices.', default=output_dir_default)
     parser.add_argument('--tensorboard_log_dir', type=str, help='TensorBoard log directory.',
