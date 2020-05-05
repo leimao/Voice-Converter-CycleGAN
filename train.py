@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 import time
 import librosa
+import sys
 
 from preprocess import *
 from model import CycleGAN
@@ -105,29 +106,33 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
             dataset_A=coded_sps_A_norm, dataset_B=coded_sps_B_norm, n_frames=n_frames)
 
         n_samples = dataset_A.shape[0]
+        try:
+            for i in range(n_samples // mini_batch_size):
 
-        for i in range(n_samples // mini_batch_size):
+                num_iterations = n_samples // mini_batch_size * epoch + i
 
-            num_iterations = n_samples // mini_batch_size * epoch + i
+                if num_iterations > 10000:
+                    lambda_identity = 0
+                if num_iterations > 200000:
+                    generator_learning_rate = max(
+                        0, generator_learning_rate - generator_learning_rate_decay)
+                    discriminator_learning_rate = max(
+                        0, discriminator_learning_rate - discriminator_learning_rate_decay)
 
-            if num_iterations > 10000:
-                lambda_identity = 0
-            if num_iterations > 200000:
-                generator_learning_rate = max(
-                    0, generator_learning_rate - generator_learning_rate_decay)
-                discriminator_learning_rate = max(
-                    0, discriminator_learning_rate - discriminator_learning_rate_decay)
+                start = i * mini_batch_size
+                end = (i + 1) * mini_batch_size
 
-            start = i * mini_batch_size
-            end = (i + 1) * mini_batch_size
+                generator_loss, discriminator_loss = model.train(input_A=dataset_A[start:end], input_B=dataset_B[start:end], lambda_cycle=lambda_cycle,
+                                                                lambda_identity=lambda_identity, generator_learning_rate=generator_learning_rate, discriminator_learning_rate=discriminator_learning_rate)
 
-            generator_loss, discriminator_loss = model.train(input_A=dataset_A[start:end], input_B=dataset_B[start:end], lambda_cycle=lambda_cycle,
-                                                             lambda_identity=lambda_identity, generator_learning_rate=generator_learning_rate, discriminator_learning_rate=discriminator_learning_rate)
-
-            if i % 50 == 0:
-                #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
-                print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(
-                    num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
+                if i % 50 == 0:
+                    #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
+                    print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(
+                        num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
+        except (KeyboardInterrupt, SystemExit):
+            print('Save model before exit')
+            model.save(directory=model_dir, filename=model_name)
+            sys.exit(0)
 
         model.save(directory=model_dir, filename=model_name)
 
