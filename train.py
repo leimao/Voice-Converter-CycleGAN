@@ -4,6 +4,7 @@ import argparse
 import time
 import librosa
 import sys
+import tensorflow as tf
 
 from preprocess import *
 from model import CycleGAN
@@ -252,6 +253,6 @@ if __name__ == '__main__':
     validation_B_dir = None if argv.validation_B_dir == 'None' or argv.validation_B_dir == 'none' else argv.validation_B_dir
     output_dir = argv.output_dir
     tensorboard_log_dir = argv.tensorboard_log_dir
-
+    tf.compat.v1.disable_eager_execution()
     train(train_A_dir=train_A_dir, train_B_dir=train_B_dir, model_dir=model_dir, model_name=model_name, random_seed=random_seed,
           validation_A_dir=validation_A_dir, validation_B_dir=validation_B_dir, output_dir=output_dir, tensorboard_log_dir=tensorboard_log_dir)

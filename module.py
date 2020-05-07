@@ -1,4 +1,5 @@
 import tensorflow as tf 
+import tensorflow_addons as tfa
 
 def gated_linear_layer(inputs, gates, name = None):
 
@@ -12,10 +13,7 @@ def instance_norm_layer(
     activation_fn = None, 
     name = None):
 
-    instance_norm_layer = tf.contrib.layers.instance_norm(
-        inputs = inputs,
-        epsilon = epsilon,
-        activation_fn = activation_fn)
+    instance_norm_layer = tfa.layers.InstanceNormalization()(inputs)
 
     return instance_norm_layer
 
@@ -29,7 +27,7 @@ def conv1d_layer(
     kernel_initializer = None,
     name = None):
 
-    conv_layer = tf.layers.conv1d(
+    conv_layer = tf.compat.v1.layers.conv1d(
         inputs = inputs,
         filters = filters,
         kernel_size = kernel_size,
@@ -51,7 +49,7 @@ def conv2d_layer(
     kernel_initializer = None,
     name = None):
 
-    conv_layer = tf.layers.conv2d(
+    conv_layer = tf.compat.v1.layers.conv2d(
         inputs = inputs,
         filters = filters,
         kernel_size = kernel_size,
@@ -134,8 +132,8 @@ def upsample1d_block(
 
 def pixel_shuffler(inputs, shuffle_size = 2, name = None):
 
-    n = tf.shape(inputs)[0]
-    w = tf.shape(inputs)[1]
+    n = tf.shape(input=inputs)[0]
+    w = tf.shape(input=inputs)[1]
     c = inputs.get_shape().as_list()[2]
 
     oc = c // shuffle_size
@@ -149,9 +147,9 @@ def generator_gatedcnn(inputs, reuse = False, scope_name = 'generator_gatedcnn')
 
     # inputs has shape [batch_size, num_features, time]
     # we need to convert it to [batch_size, time, num_features] for 1D convolution
-    inputs = tf.transpose(inputs, perm = [0, 2, 1], name = 'input_transpose')
+    inputs = tf.transpose(a=inputs, perm = [0, 2, 1], name = 'input_transpose')
 
-    with tf.variable_scope(scope_name) as scope:
+    with tf.compat.v1.variable_scope(scope_name) as scope:
         # Discriminator would be reused in CycleGAN
         if reuse:
             scope.reuse_variables()
@@ -180,7 +178,7 @@ def generator_gatedcnn(inputs, reuse = False, scope_name = 'generator_gatedcnn')
 
         # Output
         o1 = conv1d_layer(inputs = u2, filters = 24, kernel_size = 15, strides = 1, activation = None, name = 'o1_conv')
-        o2 = tf.transpose(o1, perm = [0, 2, 1], name = 'output_transpose')
+        o2 = tf.transpose(a=o1, perm = [0, 2, 1], name = 'output_transpose')
 
     return o2
     
@@ -191,7 +189,7 @@ def discriminator(inputs, reuse = False, scope_name = 'discriminator'):
     # we need to add channel for 2D convolution [batch_size, num_features, time, 1]
     inputs = tf.expand_dims(inputs, -1)
 
-    with tf.variable_scope(scope_name) as scope:
+    with tf.compat.v1.variable_scope(scope_name) as scope:
         # Discriminator would be reused in CycleGAN
         if reuse:
             scope.reuse_variables()
@@ -208,7 +206,7 @@ def discriminator(inputs, reuse = False, scope_name = 'discriminator'):
         d3 = downsample2d_block(inputs = d2, filters = 1024, kernel_size = [6, 3], strides = [1, 2], name_prefix = 'downsample2d_block3_')
 
         # Output
-        o1 = tf.layers.dense(inputs = d3, units = 1, activation = tf.nn.sigmoid)
+        o1 = tf.compat.v1.layers.dense(inputs = d3, units = 1, activation = tf.nn.sigmoid)
 
         return o1
 

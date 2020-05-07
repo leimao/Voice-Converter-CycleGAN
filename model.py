@@ -20,34 +20,34 @@ class CycleGAN(object):
         self.build_model()
         self.optimizer_initializer()
 
-        self.saver = tf.train.Saver()
-        self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())
+        self.saver = tf.compat.v1.train.Saver()
+        self.sess = tf.compat.v1.Session()
+        self.sess.run(tf.compat.v1.global_variables_initializer())
 
         if self.mode == 'train':
             self.train_step = 0
             now = datetime.now()
             self.log_dir = os.path.join(log_dir, now.strftime('%Y%m%d-%H%M%S'))
-            self.writer = tf.summary.FileWriter(
-                self.log_dir, tf.get_default_graph())
+            self.writer = tf.compat.v1.summary.FileWriter(
+                self.log_dir, tf.compat.v1.get_default_graph())
             self.generator_summaries, self.discriminator_summaries = self.summary()
 
     def build_model(self):
 
         # Placeholders for real training samples
-        self.input_A_real = tf.placeholder(
+        self.input_A_real = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_A_real')
-        self.input_B_real = tf.placeholder(
+        self.input_B_real = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_B_real')
         # Placeholders for fake generated samples
-        self.input_A_fake = tf.placeholder(
+        self.input_A_fake = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_A_fake')
-        self.input_B_fake = tf.placeholder(
+        self.input_B_fake = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_B_fake')
         # Placeholder for test samples
-        self.input_A_test = tf.placeholder(
+        self.input_A_test = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_A_test')
-        self.input_B_test = tf.placeholder(
+        self.input_B_test = tf.compat.v1.placeholder(
             tf.float32, shape=self.input_shape, name='input_B_test')
 
         self.generation_B = self.generator(
@@ -79,9 +79,9 @@ class CycleGAN(object):
             l1_loss(y=self.input_B_real, y_hat=self.generation_B_identity)
 
         # Place holder for lambda_cycle and lambda_identity
-        self.lambda_cycle = tf.placeholder(
+        self.lambda_cycle = tf.compat.v1.placeholder(
             tf.float32, None, name='lambda_cycle')
-        self.lambda_identity = tf.placeholder(
+        self.lambda_identity = tf.compat.v1.placeholder(
             tf.float32, None, name='lambda_identity')
 
         # Generator loss
@@ -124,7 +124,7 @@ class CycleGAN(object):
         self.discriminator_loss = self.discriminator_loss_A + self.discriminator_loss_B
 
         # Categorize variables because we have to optimize the two sets of the variables separately
-        trainable_variables = tf.trainable_variables()
+        trainable_variables = tf.compat.v1.trainable_variables()
         self.discriminator_vars = [
             var for var in trainable_variables if 'discriminator' in var.name]
         self.generator_vars = [
@@ -139,13 +139,13 @@ class CycleGAN(object):
 
     def optimizer_initializer(self):
 
-        self.generator_learning_rate = tf.placeholder(
+        self.generator_learning_rate = tf.compat.v1.placeholder(
             tf.float32, None, name='generator_learning_rate')
-        self.discriminator_learning_rate = tf.placeholder(
+        self.discriminator_learning_rate = tf.compat.v1.placeholder(
             tf.float32, None, name='discriminator_learning_rate')
-        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(
+        self.discriminator_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(
             self.discriminator_loss, var_list=self.discriminator_vars)
-        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(
+        self.generator_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(
             self.generator_loss, var_list=self.generator_vars)
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
@@ -193,28 +193,28 @@ class CycleGAN(object):
 
     def summary(self):
 
-        with tf.name_scope('generator_summaries'):
-            cycle_loss_summary = tf.summary.scalar(
+        with tf.compat.v1.name_scope('generator_summaries'):
+            cycle_loss_summary = tf.compat.v1.summary.scalar(
                 'cycle_loss', self.cycle_loss)
-            identity_loss_summary = tf.summary.scalar(
+            identity_loss_summary = tf.compat.v1.summary.scalar(
                 'identity_loss', self.identity_loss)
-            generator_loss_A2B_summary = tf.summary.scalar(
+            generator_loss_A2B_summary = tf.compat.v1.summary.scalar(
                 'generator_loss_A2B', self.generator_loss_A2B)
-            generator_loss_B2A_summary = tf.summary.scalar(
+            generator_loss_B2A_summary = tf.compat.v1.summary.scalar(
                 'generator_loss_B2A', self.generator_loss_B2A)
-            generator_loss_summary = tf.summary.scalar(
+            generator_loss_summary = tf.compat.v1.summary.scalar(
                 'generator_loss', self.generator_loss)
-            generator_summaries = tf.summary.merge(
+            generator_summaries = tf.compat.v1.summary.merge(
                 [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
 
-        with tf.name_scope('discriminator_summaries'):
-            discriminator_loss_A_summary = tf.summary.scalar(
+        with tf.compat.v1.name_scope('discriminator_summaries'):
+            discriminator_loss_A_summary = tf.compat.v1.summary.scalar(
                 'discriminator_loss_A', self.discriminator_loss_A)
-            discriminator_loss_B_summary = tf.summary.scalar(
+            discriminator_loss_B_summary = tf.compat.v1.summary.scalar(
                 'discriminator_loss_B', self.discriminator_loss_B)
-            discriminator_loss_summary = tf.summary.scalar(
+            discriminator_loss_summary = tf.compat.v1.summary.scalar(
                 'discriminator_loss', self.discriminator_loss)
-            discriminator_summaries = tf.summary.merge(
+            discriminator_summaries = tf.compat.v1.summary.merge(
                 [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
 
         return generator_summaries, discriminator_summaries
