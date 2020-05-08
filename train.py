@@ -10,7 +10,10 @@ from preprocess import *
 from model import CycleGAN
 
 
-def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validation_A_dir, validation_B_dir, output_dir, tensorboard_log_dir):
+def train(
+        train_A_dir, train_B_dir, model_dir, model_name, random_seed,
+        validation_A_dir, validation_B_dir, output_dir, tensorboard_log_dir,
+        save_interval):
 
     np.random.seed(random_seed)
 
@@ -134,8 +137,8 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
             print('Save model before exit')
             model.save(directory=model_dir, filename=model_name)
             sys.exit(0)
-
-        model.save(directory=model_dir, filename=model_name)
+        if epoch % save_interval == 0:
+            model.save(directory=model_dir, filename=model_name)
 
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
@@ -241,6 +244,11 @@ if __name__ == '__main__':
                         help='Output directory for converted validation voices.', default=output_dir_default)
     parser.add_argument('--tensorboard_log_dir', type=str, help='TensorBoard log directory.',
                         default=tensorboard_log_dir_default)
+    parser.add_argument(
+        '--save_interval',
+        type=int,
+        help='Save model to disk every X epochs',
+        default=20)
 
     argv = parser.parse_args()
 
@@ -254,5 +262,14 @@ if __name__ == '__main__':
     output_dir = argv.output_dir
     tensorboard_log_dir = argv.tensorboard_log_dir
     tf.compat.v1.disable_eager_execution()
-    train(train_A_dir=train_A_dir, train_B_dir=train_B_dir, model_dir=model_dir, model_name=model_name, random_seed=random_seed,
-          validation_A_dir=validation_A_dir, validation_B_dir=validation_B_dir, output_dir=output_dir, tensorboard_log_dir=tensorboard_log_dir)
+    train(
+        train_A_dir=train_A_dir,
+        train_B_dir=train_B_dir,
+        model_dir=model_dir,
+        model_name=model_name,
+        random_seed=random_seed,
+        validation_A_dir=validation_A_dir,
+        validation_B_dir=validation_B_dir,
+        output_dir=output_dir,
+        tensorboard_log_dir=tensorboard_log_dir,
+        save_interval=argv.save_interval)
