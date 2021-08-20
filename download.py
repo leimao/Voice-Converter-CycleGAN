@@ -17,6 +17,8 @@ def progress_bar(block_num, block_size, total_size):
         widgets = [progressbar.Percentage(), ' ', progressbar.Bar(marker = '>', left = '[', right = ']'), ' ', progressbar.ETA(), ' ', progressbar.FileTransferSpeed()] 
         pbar = progressbar.ProgressBar(widgets = widgets, maxval = total_size)
 
+    pbar.start()
+
     downloaded = block_num * block_size
     if downloaded < total_size:
         pbar.update(downloaded)
