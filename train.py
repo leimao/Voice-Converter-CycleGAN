@@ -9,11 +9,11 @@ from preprocess import *
 from model import CycleGAN
 
 
-def train(train_A_dir, train_B_dir,  random_seed, validation_A_dir=None, validation_B_dir=None,):
+def train(train_A_dir, train_B_dir, random_seed, validation_A_dir=None, validation_B_dir=None,):
 
     np.random.seed(random_seed)
 
-    num_epochs = num_epochs
+    num_epochs = num_of_epochs
     mini_batch_size = 1 # mini_batch_size = 1 is better
     generator_learning_rate = 0.0002
     generator_learning_rate_decay = generator_learning_rate / 200000

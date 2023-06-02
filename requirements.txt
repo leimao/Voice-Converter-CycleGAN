@@ -3,5 +3,5 @@ pyworld
 tensorflow
 progressbar
 argparse
-ffmeg
+ffmpeg
 ipython
