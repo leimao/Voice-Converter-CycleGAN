@@ -38,8 +38,8 @@ def train(train_A_dir, train_B_dir, random_seed, validation_A_dir=None, validati
     print('Train data A: {} loaded'.format(len(wavs_A)))
     print('Train data B: {} loaded'.format(len(wavs_B)))
 
-    f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs = wavs_A, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
-    f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs = wavs_B, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
+    f0s_A, coded_sps_A = world_encode_data(wavs = wavs_A, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
+    f0s_B, coded_sps_B = world_encode_data(wavs = wavs_B, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
 
     log_f0s_mean_A, log_f0s_std_A = logf0_statistics(f0s_A)
     log_f0s_mean_B, log_f0s_std_B = logf0_statistics(f0s_B)

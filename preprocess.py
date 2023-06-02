@@ -50,21 +50,15 @@ def world_decode_spectral_envelop(coded_sp, fs):
 def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
 
     f0s = list()
-    timeaxes = list()
-    sps = list()
-    aps = list()
     coded_sps = list()
 
     for wav in wavs:
         f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
         coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
         f0s.append(f0)
-        timeaxes.append(timeaxis)
-        sps.append(sp)
-        aps.append(ap)
         coded_sps.append(coded_sp)
 
-    return f0s, timeaxes, sps, aps, coded_sps
+    return f0s, coded_sps
 
 
 def transpose_in_list(lst):
