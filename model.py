@@ -1,3 +1,4 @@
+from params import *
 import os
 import tensorflow as tf
 from module import discriminator, generator_gatedcnn
@@ -6,7 +7,7 @@ from datetime import datetime
 
 class CycleGAN(object):
 
-    def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, mode = 'train', log_dir = './log'):
+    def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, mode = 'train'):
 
         self.num_features = num_features
         self.input_shape = [None, num_features, None] # [batch_size, num_features, num_frames]
@@ -169,7 +170,7 @@ class CycleGAN(object):
         return generator_summaries, discriminator_summaries
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
-    model = CycleGAN(num_features = 24)
-    print('Graph Compile Successeded.')
+#     model = CycleGAN(num_features = 24)
+#     print('Graph Compile Successeded.')

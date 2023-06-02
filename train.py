@@ -1,3 +1,4 @@
+from params import *
 import os
 import numpy as np
 import argparse
@@ -8,22 +9,24 @@ from preprocess import *
 from model import CycleGAN
 
 
-def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validation_A_dir, validation_B_dir, output_dir, tensorboard_log_dir):
+def train(train_A_dir, train_B_dir,  random_seed, validation_A_dir=None, validation_B_dir=None,):
 
     np.random.seed(random_seed)
 
-    num_epochs = 5000
+    num_epochs = num_epochs
     mini_batch_size = 1 # mini_batch_size = 1 is better
     generator_learning_rate = 0.0002
     generator_learning_rate_decay = generator_learning_rate / 200000
     discriminator_learning_rate = 0.0001
     discriminator_learning_rate_decay = discriminator_learning_rate / 200000
-    sampling_rate = 16000
+    sampling_rate = sampling_rate
     num_mcep = 24
     frame_period = 5.0
     n_frames = 128
     lambda_cycle = 10
     lambda_identity = 5
+    generator_losses=[]
+    discriminator_losses=[]
 
     print('Preprocessing Data...')
 
@@ -105,17 +108,22 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
             end = (i + 1) * mini_batch_size
 
             generator_loss, discriminator_loss = model.train(input_A = dataset_A[start:end], input_B = dataset_B[start:end], lambda_cycle = lambda_cycle, lambda_identity = lambda_identity, generator_learning_rate = generator_learning_rate, discriminator_learning_rate = discriminator_learning_rate)
+            generator_losses.append(generator_loss)
+            discriminator_losses.append(discriminator_loss)
 
             if i % 50 == 0:
                 #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
                 print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
+        model_name = "{}.ckpt".format(model_prefix)
         model.save(directory = model_dir, filename = model_name)
 
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
 
         print('Time Elapsed for This Epoch: %02d:%02d:%02d' % (time_elapsed_epoch // 3600, (time_elapsed_epoch % 3600 // 60), (time_elapsed_epoch % 60 // 1)))
+        visualize_loss(generator_losses, discriminator_losses, "Generator Losses", "Discriminator Losses", 'Losses')
+
 
         if validation_A_dir is not None:
             if epoch % 50 == 0:
@@ -157,40 +165,40 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                     wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
                     librosa.output.write_wav(os.path.join(validation_B_output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description = 'Train CycleGAN model for datasets.')
+#     parser = argparse.ArgumentParser(description = 'Train CycleGAN model for datasets.')
 
-    train_A_dir_default = './data/vcc2016_training/SF1'
-    train_B_dir_default = './data/vcc2016_training/TF2'
-    model_dir_default = './model/sf1_tf2'
-    model_name_default = 'sf1_tf2.ckpt'
-    random_seed_default = 0
-    validation_A_dir_default = './data/evaluation_all/SF1'
-    validation_B_dir_default = './data/evaluation_all/TF2'
-    output_dir_default = './validation_output'
-    tensorboard_log_dir_default = './log'
+#     train_A_dir_default = './data/vcc2016_training/SF1'
+#     train_B_dir_default = './data/vcc2016_training/TF2'
+#     model_dir_default = './model/sf1_tf2'
+#     model_name_default = 'sf1_tf2.ckpt'
+#     random_seed_default = 0
+#     validation_A_dir_default = './data/evaluation_all/SF1'
+#     validation_B_dir_default = './data/evaluation_all/TF2'
+#     output_dir_default = './validation_output'
+#     tensorboard_log_dir_default = './log'
 
-    parser.add_argument('--train_A_dir', type = str, help = 'Directory for A.', default = train_A_dir_default)
-    parser.add_argument('--train_B_dir', type = str, help = 'Directory for B.', default = train_B_dir_default)
-    parser.add_argument('--model_dir', type = str, help = 'Directory for saving models.', default = model_dir_default)
-    parser.add_argument('--model_name', type = str, help = 'File name for saving model.', default = model_name_default)
-    parser.add_argument('--random_seed', type = int, help = 'Random seed for model training.', default = random_seed_default)
-    parser.add_argument('--validation_A_dir', type = str, help = 'Convert validation A after each training epoch. If set none, no conversion would be done during the training.', default = validation_A_dir_default)
-    parser.add_argument('--validation_B_dir', type = str, help = 'Convert validation B after each training epoch. If set none, no conversion would be done during the training.', default = validation_B_dir_default)
-    parser.add_argument('--output_dir', type = str, help = 'Output directory for converted validation voices.', default = output_dir_default)
-    parser.add_argument('--tensorboard_log_dir', type = str, help = 'TensorBoard log directory.', default = tensorboard_log_dir_default)
+#     parser.add_argument('--train_A_dir', type = str, help = 'Directory for A.', default = train_A_dir_default)
+#     parser.add_argument('--train_B_dir', type = str, help = 'Directory for B.', default = train_B_dir_default)
+#     parser.add_argument('--model_dir', type = str, help = 'Directory for saving models.', default = model_dir_default)
+#     parser.add_argument('--model_name', type = str, help = 'File name for saving model.', default = model_name_default)
+#     parser.add_argument('--random_seed', type = int, help = 'Random seed for model training.', default = random_seed_default)
+#     parser.add_argument('--validation_A_dir', type = str, help = 'Convert validation A after each training epoch. If set none, no conversion would be done during the training.', default = validation_A_dir_default)
+#     parser.add_argument('--validation_B_dir', type = str, help = 'Convert validation B after each training epoch. If set none, no conversion would be done during the training.', default = validation_B_dir_default)
+#     parser.add_argument('--output_dir', type = str, help = 'Output directory for converted validation voices.', default = output_dir_default)
+#     parser.add_argument('--tensorboard_log_dir', type = str, help = 'TensorBoard log directory.', default = tensorboard_log_dir_default)
 
-    argv = parser.parse_args()
+#     argv = parser.parse_args()
 
-    train_A_dir = argv.train_A_dir
-    train_B_dir = argv.train_B_dir
-    model_dir = argv.model_dir
-    model_name = argv.model_name
-    random_seed = argv.random_seed
-    validation_A_dir = None if argv.validation_A_dir == 'None' or argv.validation_A_dir == 'none' else argv.validation_A_dir
-    validation_B_dir = None if argv.validation_B_dir == 'None' or argv.validation_B_dir == 'none' else argv.validation_B_dir
-    output_dir = argv.output_dir
-    tensorboard_log_dir = argv.tensorboard_log_dir
+#     train_A_dir = argv.train_A_dir
+#     train_B_dir = argv.train_B_dir
+#     model_dir = argv.model_dir
+#     model_name = argv.model_name
+#     random_seed = argv.random_seed
+#     validation_A_dir = None if argv.validation_A_dir == 'None' or argv.validation_A_dir == 'none' else argv.validation_A_dir
+#     validation_B_dir = None if argv.validation_B_dir == 'None' or argv.validation_B_dir == 'none' else argv.validation_B_dir
+#     output_dir = argv.output_dir
+#     tensorboard_log_dir = argv.tensorboard_log_dir
 
-    train(train_A_dir = train_A_dir, train_B_dir = train_B_dir, model_dir = model_dir, model_name = model_name, random_seed = random_seed, validation_A_dir = validation_A_dir, validation_B_dir = validation_B_dir, output_dir = output_dir, tensorboard_log_dir = tensorboard_log_dir)
+#     train(train_A_dir = train_A_dir, train_B_dir = train_B_dir, model_dir = model_dir, model_name = model_name, random_seed = random_seed, validation_A_dir = validation_A_dir, validation_B_dir = validation_B_dir, output_dir = output_dir, tensorboard_log_dir = tensorboard_log_dir)

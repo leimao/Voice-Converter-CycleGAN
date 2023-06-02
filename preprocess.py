@@ -1,7 +1,11 @@
+from params import *
 import librosa
 import numpy as np
 import os
 import pyworld
+import matplotlib.pyplot as plt
+import IPython
+import IPython.display as ipd 
 
 def load_wavs(wav_dir, sr):
 
@@ -236,3 +240,28 @@ def sample_train_data(dataset_A, dataset_B, n_frames = 128):
     train_data_B = np.array(train_data_B)
 
     return train_data_A, train_data_B
+
+
+def visualize_loss(loss_1, loss_2, first_legend, second_legend, y_label):
+    plt.figure(figsize=(10, 5))
+    plt.title("{} and {} Loss During Training".format(first_legend, second_legend))
+    plt.plot(loss_1, label=first_legend)
+    plt.plot(loss_2, label=second_legend)
+    plt.xlabel("Iterations")
+    plt.ylabel(y_label)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.legend()
+
+    if not (os.path.isdir("visualization")):
+        os.makedirs("visualization")
+
+    plt.savefig("visualization/loss.png")
+
+    plt.show()
+
+def visualize_audio(audio,sampling_rate,text=''):
+    print(text)
+    IPython.display.display(ipd.Audio(audio, rate=sampling_rate, autoplay=False))            # plays audio
+    plt.plot(audio, '-', )                                        # plot audio
+    plt.show()

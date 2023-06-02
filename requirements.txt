@@ -1,0 +1,7 @@
+librosa
+pyworld
+tensorflow
+progressbar
+argparse
+ffmeg
+ipython
