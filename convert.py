@@ -9,7 +9,7 @@ from preprocess import *
 def conversion(file, conversion_direction='A2B'):
 
     num_features = 24
-    sampling_rate = sampling_rate
+    sampling_rate = audio_sampling_rate
     frame_period = 5.0
 
     model = CycleGAN(num_features = num_features, mode = 'test')

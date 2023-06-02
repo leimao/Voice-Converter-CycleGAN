@@ -2,7 +2,7 @@
 # Training Parameters
 #############################
 num_of_epochs = 10
-sampling_rate = 16000
+audio_sampling_rate = 16000
 
 #############################
 # Datsets Parameters
