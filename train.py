@@ -35,6 +35,9 @@ def train(train_A_dir, train_B_dir, random_seed, validation_A_dir=None, validati
     wavs_A = load_wavs(wav_dir = train_A_dir, sr = sampling_rate)
     wavs_B = load_wavs(wav_dir = train_B_dir, sr = sampling_rate)
 
+    print('Train data A: {} loaded'.format(len(wavs_A)))
+    print('Train data B: {} loaded'.format(len(wavs_B)))
+
     f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs = wavs_A, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
     f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs = wavs_B, fs = sampling_rate, frame_period = frame_period, coded_dim = num_mcep)
 
@@ -114,6 +117,11 @@ def train(train_A_dir, train_B_dir, random_seed, validation_A_dir=None, validati
             if i % 50 == 0:
                 #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
                 print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
+
+            # # save losses to a csv file
+            # with open(os.path.join(model_dir, 'losses.csv'), 'a') as f:
+            #     writer = csv.writer(f)
+            #     writer.writerow([num_iterations, generator_loss, discriminator_loss])
 
         model_name = "{}.ckpt".format(model_prefix)
         model.save(directory = model_dir, filename = model_name)

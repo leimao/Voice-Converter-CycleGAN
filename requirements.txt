@@ -5,3 +5,4 @@ progressbar
 argparse
 ffmpeg
 ipython
+numpy==1.14

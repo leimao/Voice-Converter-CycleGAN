@@ -7,8 +7,8 @@ audio_sampling_rate = 16000
 #############################
 # Datsets Parameters
 #############################
-train_A_dir = './content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/neutral'
-train_B_dir = './content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/happy'
+train_A_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/neutral'
+train_B_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/happy'
 
 #############################
 # Model Parameters
