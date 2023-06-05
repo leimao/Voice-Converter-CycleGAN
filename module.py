@@ -1,6 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv1D, Conv2D, Dense
-from tensorflow.keras.layers import LayerNormalization, Multiply, Activation
+from tensorflow.keras.layers import Conv1D, Conv2D,LayerNormalization, Multiply, Activation
 
 def gated_linear_layer(inputs, gates, name=None):
     activation = Multiply()([inputs, Activation('sigmoid')(gates)])
@@ -10,8 +9,11 @@ def gated_linear_layer(inputs, gates, name=None):
 
 
 def instance_norm_layer(inputs, epsilon=1e-06, activation_fn=None, name=None):
-    instance_norm_layer = LayerNormalization(epsilon=epsilon, activation=activation_fn, name=name)(inputs)
+    instance_norm_layer = LayerNormalization(epsilon=epsilon, name=name)(inputs)
+    if activation_fn is not None:
+        instance_norm_layer = Activation(activation_fn)(instance_norm_layer)
     return instance_norm_layer
+
 
 
 def conv1d_layer(inputs, filters, kernel_size, strides=1, padding='same', activation=None, kernel_initializer=None, name=None):
