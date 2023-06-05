@@ -48,10 +48,10 @@ def downsample1d_block(inputs, filters, kernel_size, strides, name_prefix='downs
 def downsample2d_block(inputs, filters, kernel_size, strides, name_prefix='downsample2d_block_'):
     h1 = conv2d_layer(inputs=inputs, filters=filters, kernel_size=kernel_size, strides=strides, activation=None,
                       name=name_prefix + 'h1_conv')
-    h1_norm = instance_norm_layer(inputs=h1, activation=None, name=name_prefix + 'h1_norm')
+    h1_norm = instance_norm_layer(inputs=h1, activation_fn=None, name=name_prefix + 'h1_norm')
     h1_gates = conv2d_layer(inputs=inputs, filters=filters, kernel_size=kernel_size, strides=strides, activation=None,
                             name=name_prefix + 'h1_gates')
-    h1_norm_gates = instance_norm_layer(inputs=h1_gates, activation=None, name=name_prefix + 'h1_norm_gates')
+    h1_norm_gates = instance_norm_layer(inputs=h1_gates, activation_fn=None, name=name_prefix + 'h1_norm_gates')
     h1_glu = gated_linear_layer(inputs=h1_norm, gates=h1_norm_gates, name=name_prefix + 'h1_glu')
 
     return h1_glu
