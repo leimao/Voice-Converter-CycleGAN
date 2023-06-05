@@ -56,16 +56,16 @@ def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
         progressbar.ETA(),
     ]
  
-    with progressbar.ProgressBar(max_value=len(wavs),widgets=widgets).start() as bar:
-        for i,wav in enumerate(wavs):
-                f0, _, sp, _ = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
-                coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
-                f0s.append(f0)
-                coded_sps.append(coded_sp)
+    bar = progressbar.ProgressBar(max_value=len(wavs),widgets=widgets).start()
+    for i,wav in enumerate(wavs):
+        f0, _, sp, _ = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
+        coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
+        f0s.append(f0)
+        coded_sps.append(coded_sp)
 
-                bar.update(i)
-
-        bar.finish()
+        bar.update(i)
+        
+    bar.finish()
 
     return f0s, coded_sps
 
