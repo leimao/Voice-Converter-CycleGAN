@@ -52,11 +52,15 @@ def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
     f0s = list()
     coded_sps = list()
 
-    for wav in wavs:
-        f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
+    for i,wav in enumerate(wavs):
+        f0, _, sp, _ = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
         coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
         f0s.append(f0)
         coded_sps.append(coded_sp)
+        if i %10==0:
+            print(i)
+        else:
+            continue
 
     return f0s, coded_sps
 
