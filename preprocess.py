@@ -49,16 +49,14 @@ def world_decode_spectral_envelop(coded_sp, fs):
 
 
 def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
-    print('\n')
     f0s = list()
     coded_sps = list()
     widgets = ['World Encode Data: ',
-        progressbar.GranularBar(), ' ',
-        progressbar.Percentage(),
+        progressbar.Percentage(), ' ',
+        progressbar.ETA(),
     ]
  
     bar = progressbar.ProgressBar(max_value=len(wavs),widgets=widgets).start()
-
     for i,wav in enumerate(wavs):
         f0, _, sp, _ = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
         coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
@@ -66,6 +64,8 @@ def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
         coded_sps.append(coded_sp)
 
         bar.update(i)
+
+    bar.finish()
 
     return f0s, coded_sps
 
