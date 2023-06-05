@@ -49,7 +49,7 @@ def world_decode_spectral_envelop(coded_sp, fs):
 
 
 def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
-
+    print('\n')
     f0s = list()
     coded_sps = list()
     widgets = ['World Encode Data: ',
