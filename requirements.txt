@@ -1,8 +1,9 @@
 librosa
 pyworld
 tensorflow
-progressbar
+progressbar2
 argparse
 ffmpeg
 ipython
+csv
 numpy==1.23.1

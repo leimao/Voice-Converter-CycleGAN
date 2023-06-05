@@ -1,9 +1,12 @@
 from params import *
 import os
-import tensorflow as tf
 from module import discriminator, generator_gatedcnn
 from utils import l1_loss, l2_loss, cross_entropy_loss
 from datetime import datetime
+import tensorflow.compat.v1 as tf
+
+tf.disable_v2_behavior()
+
 
 class CycleGAN(object):
 

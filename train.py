@@ -4,6 +4,7 @@ import numpy as np
 import argparse
 import time
 import librosa
+import csv
 
 from preprocess import *
 from model import CycleGAN
@@ -118,10 +119,22 @@ def train(train_A_dir, train_B_dir, random_seed, validation_A_dir=None, validati
                 #print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
                 print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
-            # # save losses to a csv file
-            # with open(os.path.join(model_dir, 'losses.csv'), 'a') as f:
-            #     writer = csv.writer(f)
-            #     writer.writerow([num_iterations, generator_loss, discriminator_loss])
+            # save losses to a csv file
+            losses_csv_path = os.path.join(train_logs__dir, 'losses.csv')
+
+            # Check if the CSV file already exists
+            file_exists = os.path.exists(losses_csv_path)
+
+            # Open the CSV file in append mode
+            with open(losses_csv_path, 'a', newline='') as f:
+                writer = csv.writer(f)
+                
+                # Write the title row only if the file doesn't exist
+                if not file_exists:
+                    writer.writerow(["num_iterations", "generator_loss", "discriminator_loss"])
+                
+                # Write the data row
+                writer.writerow([num_iterations, generator_loss, discriminator_loss])
 
         model_name = "{}.ckpt".format(model_prefix)
         model.save(directory = model_dir, filename = model_name)
