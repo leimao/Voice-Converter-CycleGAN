@@ -77,7 +77,7 @@ def pixel_shuffler(inputs, shuffle_size=2, name=None):
 def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
     inputs = tf.transpose(inputs, perm=[0, 2, 1], name='input_transpose')
 
-    with tf.variable_scope(scope_name, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope_name, reuse=reuse):
         h1 = conv1d_layer(inputs=inputs, filters=128, kernel_size=15, strides=1, activation=None, name='h1_conv')
         h1_gates = conv1d_layer(inputs=inputs, filters=128, kernel_size=15, strides=1, activation=None, name='h1_conv_gates')
         h1_glu = gated_linear_layer(inputs=h1, gates=h1_gates, name='h1_glu')
@@ -103,7 +103,7 @@ def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
 def discriminator(inputs, reuse=False, scope_name='discriminator'):
     inputs = tf.expand_dims(inputs, -1)
 
-    with tf.variable_scope(scope_name, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope_name, reuse=reuse):
         h1 = conv2d_layer(inputs=inputs, filters=128, kernel_size=[3, 3], strides=[1, 2], activation=None, name='h1_conv')
         h1_gates = conv2d_layer(inputs=inputs, filters=128, kernel_size=[3, 3], strides=[1, 2], activation=None, name='h1_conv_gates')
         h1_glu = gated_linear_layer(inputs=h1, gates=h1_gates, name='h1_glu')
