@@ -6,6 +6,7 @@ import pyworld
 import matplotlib.pyplot as plt
 import IPython
 import IPython.display as ipd 
+import progressbar
 
 def load_wavs(wav_dir, sr):
 
@@ -51,16 +52,20 @@ def world_encode_data(wavs, fs, frame_period = 5.0, coded_dim = 24):
 
     f0s = list()
     coded_sps = list()
+    widgets = ['World Encode Data: ',
+        progressbar.GranularBar(), ' ',
+        progressbar.Percentage(),
+    ]
+ 
+    bar = progressbar.ProgressBar(max_value=len(wavs),widgets=widgets).start()
 
     for i,wav in enumerate(wavs):
         f0, _, sp, _ = world_decompose(wav = wav, fs = fs, frame_period = frame_period)
         coded_sp = world_encode_spectral_envelop(sp = sp, fs = fs, dim = coded_dim)
         f0s.append(f0)
         coded_sps.append(coded_sp)
-        if i %10==0:
-            print(i)
-        else:
-            continue
+
+        bar.update(i)
 
     return f0s, coded_sps
 
