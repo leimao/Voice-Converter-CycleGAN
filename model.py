@@ -21,9 +21,9 @@ class CycleGAN(object):
         self.build_model()
         self.optimizer_initializer()
 
-        self.saver = tf.train.Saver()
-        self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())
+        self.saver = v1.train.Saver()
+        self.sess = v1.Session()
+        self.sess.run(v1.global_variables_initializer())
 
         if self.mode == 'train':
             self.train_step = 0
