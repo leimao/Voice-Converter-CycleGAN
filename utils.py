@@ -1,10 +1,9 @@
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 
 import os
 import random
 import numpy as np
 
-tf.disable_v2_behavior()
 def l1_loss(y, y_hat):
 
     return tf.reduce_mean(tf.abs(y - y_hat))

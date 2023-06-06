@@ -97,6 +97,7 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
         dataset_A, dataset_B = sample_train_data(dataset_A = coded_sps_A_norm, dataset_B = coded_sps_B_norm, n_frames = n_frames)
 
         n_samples = dataset_A.shape[0]
+        print('n_samples: %d' % n_samples)
 
         for i in range(n_samples // mini_batch_size):
 
