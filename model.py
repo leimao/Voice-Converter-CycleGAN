@@ -8,7 +8,7 @@ import tensorflow as tf
 
 class CycleGAN(tf.keras.Model):
 
-    def __init__(self, num_features, discriminator, generator):
+    def __init__(self, num_features, discriminator=discriminator, generator=generator_gatedcnn):
         super(CycleGAN, self).__init__()
 
         self.num_features = num_features
