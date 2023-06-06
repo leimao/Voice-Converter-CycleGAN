@@ -62,8 +62,8 @@ class CycleGAN(object):
         self.identity_loss = l1_loss(y=self.input_A_real, y_hat=self.generation_A_identity) + l1_loss(y=self.input_B_real, y_hat=self.generation_B_identity)
 
         # Place holder for lambda_cycle and lambda_identity
-        self.lambda_cycle = tf.placeholder(tf.float32, shape=[], name='lambda_cycle')
-        self.lambda_identity = tf.placeholder(tf.float32, shape=[], name='lambda_identity')
+        self.lambda_cycle = v1.placeholder(tf.float32, shape=[], name='lambda_cycle')
+        self.lambda_identity = v1.placeholder(tf.float32, shape=[], name='lambda_identity')
 
         # Generator loss
         # Generator wants to fool discriminator
@@ -106,10 +106,10 @@ class CycleGAN(object):
         self.generation_A_test = self.generator(inputs=self.input_B_test, reuse=True, scope_name='generator_B2A')
 
     def optimizer_initializer(self):
-        self.generator_learning_rate = tf.placeholder(tf.float32, shape=[], name='generator_learning_rate')
-        self.discriminator_learning_rate = tf.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
-        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss, var_list=self.discriminator_vars)
-        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
+        self.generator_learning_rate = v1.placeholder(tf.float32, shape=[], name='generator_learning_rate')
+        self.discriminator_learning_rate = v1.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
+        self.discriminator_optimizer = v1.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss, var_list=self.discriminator_vars)
+        self.generator_optimizer = v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
         generation_A, generation_B, generator_loss, _, generator_summaries = self.sess.run(
