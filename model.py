@@ -97,7 +97,7 @@ class CycleGAN(object):
         self.discriminator_loss = self.discriminator_loss_A + self.discriminator_loss_B
 
         # Categorize variables because we have to optimize the two sets of the variables separately
-        trainable_variables = tf.trainable_variables()
+        trainable_variables = v1.trainable_variables()
         self.discriminator_vars = [var for var in trainable_variables if 'discriminator' in var.name]
         self.generator_vars = [var for var in trainable_variables if 'generator' in var.name]
 
