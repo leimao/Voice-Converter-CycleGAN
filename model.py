@@ -3,8 +3,10 @@ import os
 from module import discriminator, generator_gatedcnn
 from utils import l1_loss, l2_loss, cross_entropy_loss
 from datetime import datetime
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+import tensorflow as tf
+import tensorflow.compat.v1 as v1
+
+v1.disable_v2_behavior()
 
 class CycleGAN(object):
 
@@ -32,14 +34,14 @@ class CycleGAN(object):
 
     def build_model(self):
         # Placeholders for real training samples
-        self.input_A_real = tf.placeholder(tf.float32, shape=self.input_shape, name='input_A_real')
-        self.input_B_real = tf.placeholder(tf.float32, shape=self.input_shape, name='input_B_real')
+        self.input_A_real = v1.placeholder(tf.float32, shape=self.input_shape, name='input_A_real')
+        self.input_B_real = v1.placeholder(tf.float32, shape=self.input_shape, name='input_B_real')
         # Placeholders for fake generated samples
-        self.input_A_fake = tf.placeholder(tf.float32, shape=self.input_shape, name='input_A_fake')
-        self.input_B_fake = tf.placeholder(tf.float32, shape=self.input_shape, name='input_B_fake')
+        self.input_A_fake = v1.placeholder(tf.float32, shape=self.input_shape, name='input_A_fake')
+        self.input_B_fake = v1.placeholder(tf.float32, shape=self.input_shape, name='input_B_fake')
         # Placeholder for test samples
-        self.input_A_test = tf.placeholder(tf.float32, shape=self.input_shape, name='input_A_test')
-        self.input_B_test = tf.placeholder(tf.float32, shape=self.input_shape, name='input_B_test')
+        self.input_A_test = v1.placeholder(tf.float32, shape=self.input_shape, name='input_A_test')
+        self.input_B_test = v1.placeholder(tf.float32, shape=self.input_shape, name='input_B_test')
 
         self.generation_B = self.generator(inputs=self.input_A_real, reuse=False, scope_name='generator_A2B')
         self.cycle_A = self.generator(inputs=self.generation_B, reuse=False, scope_name='generator_B2A')
