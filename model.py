@@ -166,7 +166,7 @@ class CycleGAN(object):
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            generator_summaries = tf.summary.merge(
+            generator_summaries = v1.summary.merge(
                 [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
             )
 
@@ -174,7 +174,7 @@ class CycleGAN(object):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
             discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-            discriminator_summaries = tf.summary.merge(
+            discriminator_summaries = v1.summary.merge(
                 [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
             )
 
