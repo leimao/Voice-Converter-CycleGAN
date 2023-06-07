@@ -30,7 +30,7 @@ class CycleGAN(object):
             now = datetime.now()
             self.log_dir = os.path.join(log_dir, now.strftime('%Y%m%d-%H%M%S'))
             self.writer = tf.summary.create_file_writer(self.log_dir)
-            # self.generator_summaries, self.discriminator_summaries = self.summary()
+            self.generator_summaries, self.discriminator_summaries = self.summary()
 
     def build_model(self):
         # Placeholders for real training samples
@@ -159,26 +159,26 @@ class CycleGAN(object):
     def load(self, filepath):
         self.saver.restore(self.sess, filepath)
 
-    # def summary(self):
-    #     with tf.name_scope('generator_summaries'):
-    #         cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
-    #         identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
-    #         generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
-    #         generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
-    #         generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-    #         generator_summaries = v1.summary.merge(
-    #             [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
-    #         )
+    def summary(self):
+        with tf.name_scope('generator_summaries'):
+            cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
+            identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
+            generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
+            generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
+            generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
+            generator_summaries = v1.summary.merge(
+                [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
+            )
 
-    #     with tf.name_scope('discriminator_summaries'):
-    #         discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
-    #         discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
-    #         discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-    #         discriminator_summaries = v1.summary.merge(
-    #             [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
-    #         )
+        with tf.name_scope('discriminator_summaries'):
+            discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
+            discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
+            discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
+            discriminator_summaries = v1.summary.merge(
+                [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
+            )
 
-    #     return generator_summaries, discriminator_summaries
+        return generator_summaries, discriminator_summaries
 
 
 # if __name__ == '__main__':
