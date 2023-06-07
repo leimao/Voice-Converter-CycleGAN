@@ -30,7 +30,7 @@ class CycleGAN(object):
             now = datetime.now()
             self.log_dir = os.path.join(log_dir, now.strftime('%Y%m%d-%H%M%S'))
             self.writer = tf.summary.create_file_writer(self.log_dir)
-            self.generator_summaries, self.discriminator_summaries = self.summary()
+            # self.generator_summaries, self.discriminator_summaries = self.summary()
 
     def build_model(self):
         # Placeholders for real training samples
