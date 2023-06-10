@@ -1,18 +1,29 @@
-import tensorflow as tf
 
 import os
 import random
 import numpy as np
+import tensorflow as tf
 
 def l1_loss(y, y_hat):
+    # Checks the shapes of y and y_hat
+    y_shape = tf.shape(y)
+    y_hat_shape = tf.shape(y_hat)
+    print('shapes: ',y_shape, y_hat_shape)
+    
+    # Checks if shapes are compatible for broadcasting
+    if y_shape != y_hat_shape:
+        # Reshape or expand dimensions to match shapes
+        y = tf.reshape(y, y_hat_shape)  # Reshape y
+        # Or use tf.expand_dims(y, axis) to add dimensions
+        
+    # Perform subtraction and calculate absolute difference
+    loss = tf.reduce_mean(tf.abs(y - y_hat))
+    return loss
 
-    return tf.reduce_mean(tf.abs(y - y_hat))
 
 def l2_loss(y, y_hat):
-
-    return tf.reduce_mean(tf.square(y - y_hat))
+    return tf.losses.mean_squared_error(y, y_hat)
 
 def cross_entropy_loss(logits, labels):
-    return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = logits, labels = labels))
-
+    return tf.losses.sigmoid_cross_entropy(labels, logits)
 
