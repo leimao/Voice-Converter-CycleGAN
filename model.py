@@ -74,13 +74,13 @@ class CycleGAN(object):
         self.generator_loss_B2A = l2_loss(y=tf.ones_like(self.discrimination_A_fake), y_hat=self.discrimination_A_fake)
 
         # Modify the generator loss calculations to align the tensor shapes
-        self.generator_loss_A2B = tf.reduce_mean(self.generator_loss_A2B, axis=[1, 2])
-        self.generator_loss_B2A = tf.reduce_mean(self.generator_loss_B2A, axis=[1, 2])
+        self.generator_loss_A2B = tf.reduce_mean(tf.reduce_sum(self.generator_loss_A2B, axis=[1, 2]))
+        self.generator_loss_B2A = tf.reduce_mean(tf.reduce_sum(self.generator_loss_B2A, axis=[1, 2]))
 
         # Merge the two generators and the cycle loss
         self.generator_loss = (
-            tf.reduce_mean(self.generator_loss_A2B)
-            + tf.reduce_mean(self.generator_loss_B2A)
+            self.generator_loss_A2B
+            + self.generator_loss_B2A
             + self.lambda_cycle * self.cycle_loss
             + self.lambda_identity * self.identity_loss
         )
@@ -114,14 +114,20 @@ class CycleGAN(object):
         self.generation_A_test = self.generator(inputs=self.input_B_test, reuse=True, scope_name='generator_B2A')
 
     def optimizer_initializer(self):
-        self.generator_learning_rate = v1.placeholder(tf.float32, shape=[], name='generator_learning_rate')
-        self.discriminator_learning_rate = v1.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
-        self.discriminator_optimizer = v1.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss, var_list=self.discriminator_vars)
-        self.generator_optimizer = v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
+        self.generator_learning_rate = tf.placeholder(tf.float32, shape=[], name='generator_learning_rate')
+        self.discriminator_learning_rate = tf.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
+
+        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5)
+        self.generator_grads_and_vars = self.generator_optimizer.compute_gradients(self.generator_loss, var_list=self.generator_vars)
+        self.generator_optimizer_op = self.generator_optimizer.apply_gradients(self.generator_grads_and_vars)
+
+        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5)
+        self.discriminator_grads_and_vars = self.discriminator_optimizer.compute_gradients(self.discriminator_loss, var_list=self.discriminator_vars)
+        self.discriminator_optimizer_op = self.discriminator_optimizer.apply_gradients(self.discriminator_grads_and_vars)
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
         generation_A, generation_B, generator_loss, _, _ = self.sess.run(
-            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries],
+            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer_op, self.generator_summaries],
             feed_dict={
                 self.lambda_cycle: lambda_cycle,
                 self.lambda_identity: lambda_identity,
@@ -137,7 +143,7 @@ class CycleGAN(object):
             self.writer.flush()
 
         discriminator_loss, _, _ = self.sess.run(
-            [self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries],
+            [self.discriminator_loss, self.discriminator_optimizer_op, self.discriminator_summaries],
             feed_dict={
                 self.input_A_real: input_A,
                 self.input_B_real: input_B,
