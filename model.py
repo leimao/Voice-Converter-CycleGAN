@@ -62,7 +62,7 @@ class CycleGAN(object):
         self.cycle_loss = l1_loss(y=self.input_A_real, y_hat=self.cycle_A) + l1_loss(y=self.input_B_real, y_hat=self.cycle_B)
 
         # Identity loss
-        self.identity_loss = l1_loss(y=self.input_A_real, y_hat=self.generation_A_identity) + l1_loss(y=self.input_B_real, y_hat=self.generation_B_identity)
+        # self.identity_loss = l1_loss(y=self.input_A_real, y_hat=self.generation_A_identity) + l1_loss(y=self.input_B_real, y_hat=self.generation_B_identity)
 
         # Place holder for lambda_cycle and lambda_identity
         self.lambda_cycle = v1.placeholder(tf.float32, shape=[], name='lambda_cycle')
@@ -78,7 +78,7 @@ class CycleGAN(object):
             self.generator_loss_A2B
             + self.generator_loss_B2A
             + self.lambda_cycle * self.cycle_loss
-            + self.lambda_identity * self.identity_loss
+            + self.lambda_identity 
         )
 
         # Discriminator loss
@@ -173,11 +173,11 @@ class CycleGAN(object):
     def summary(self):
         with tf.name_scope('generator_summaries'):
             cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
-            identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
+            # identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            self.generator_summaries = [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
+            self.generator_summaries = [cycle_loss_summary,  generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
