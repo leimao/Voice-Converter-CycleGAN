@@ -5,14 +5,19 @@ import numpy as np
 import tensorflow as tf
 
 def l1_loss(y, y_hat):
-    if y.shape[-1] != y_hat.shape[-1]:
-        y_shape = tf.shape(y)
-        y_hat_shape = tf.shape(y_hat)
-        max_dim = tf.maximum(y_shape[-1], y_hat_shape[-1])
-        y = tf.broadcast_to(y, tf.concat([y_shape[:-1], [max_dim]], axis=0))
-        y_hat = tf.broadcast_to(y_hat, tf.concat([y_hat_shape[:-1], [max_dim]], axis=0))
-    loss = tf.reduce_mean(tf.abs(y - y_hat))
+    y_shape = tf.shape(y)
+    y_hat_shape = tf.shape(y_hat)
+    
+    # Reshape tensors to a common shape
+    y_reshaped = tf.reshape(y, [-1, tf.reduce_max(y_shape)])
+    y_hat_reshaped = tf.reshape(y_hat, [-1, tf.reduce_max(y_hat_shape)])
+    
+    print(y_reshaped.shape)
+    print(y_hat_reshaped.shape)
+    # Calculate L1 loss
+    loss = tf.reduce_mean(tf.abs(y_reshaped - y_hat_reshaped))
     return loss
+
 
 
 
