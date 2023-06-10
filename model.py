@@ -73,6 +73,10 @@ class CycleGAN(object):
         self.generator_loss_A2B = l2_loss(y=tf.ones_like(self.discrimination_B_fake), y_hat=self.discrimination_B_fake)
         self.generator_loss_B2A = l2_loss(y=tf.ones_like(self.discrimination_A_fake), y_hat=self.discrimination_A_fake)
 
+        # Modify the generator loss calculations to align the tensor shapes
+        self.generator_loss_A2B = tf.reduce_mean(self.generator_loss_A2B, axis=[1, 2])
+        self.generator_loss_B2A = tf.reduce_mean(self.generator_loss_B2A, axis=[1, 2])
+
         # Merge the two generators and the cycle loss
         self.generator_loss = (
             self.generator_loss_A2B
@@ -103,27 +107,18 @@ class CycleGAN(object):
         trainable_variables = v1.trainable_variables()
         self.discriminator_vars = [var for var in trainable_variables if 'discriminator' in var.name]
         self.generator_vars = [var for var in trainable_variables if 'generator' in var.name]
-        print('Length of discriminator_vars: %d' % len(self.discriminator_vars))
-        print(self.discriminator_vars)
-        print('Length of generator_vars: %d' % len(self.generator_vars))
-        print(self.generator_vars)
+
 
         # Reserved for test
         self.generation_B_test = self.generator(inputs=self.input_A_test, reuse=True, scope_name='generator_A2B')
         self.generation_A_test = self.generator(inputs=self.input_B_test, reuse=True, scope_name='generator_B2A')
 
     def optimizer_initializer(self):
-  
         self.generator_learning_rate = v1.placeholder(tf.float32, shape=[], name='generator_learning_rate')
         self.discriminator_learning_rate = v1.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
+        self.discriminator_optimizer = v1.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss, var_list=self.discriminator_vars)
+        self.generator_optimizer = v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
 
-        # Safeguard: Check shapes compatibility before optimizer
-        tf.debugging.assert_shapes([(self.generator_loss, 'G_loss'), (self.generator_vars, 'G_vars')])
-        tf.debugging.assert_shapes([(self.discriminator_loss, 'D_loss'), (self.discriminator_vars, 'D_vars')])
-
-        self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss, var_list=self.discriminator_vars)
-        self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
-    
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
         generation_A, generation_B, generator_loss, _, _ = self.sess.run(
             [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries],
