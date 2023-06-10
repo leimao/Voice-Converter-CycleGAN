@@ -114,8 +114,8 @@ class CycleGAN(object):
         self.generation_A_test = self.generator(inputs=self.input_B_test, reuse=True, scope_name='generator_B2A')
 
     def optimizer_initializer(self):
-        self.generator_learning_rate = tf.placeholder(tf.float32, shape=[], name='generator_learning_rate')
-        self.discriminator_learning_rate = tf.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
+        self.generator_learning_rate = v1.placeholder(tf.float32, shape=[], name='generator_learning_rate')
+        self.discriminator_learning_rate = v1.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
 
         self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5)
         self.generator_grads_and_vars = self.generator_optimizer.compute_gradients(self.generator_loss, var_list=self.generator_vars)
