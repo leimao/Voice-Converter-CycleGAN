@@ -6,18 +6,14 @@ import tensorflow as tf
 
 def l1_loss(y, y_hat):
     if y.shape[-1] != y_hat.shape[-1]:
-        if y.shape[-1] < y_hat.shape[-1]:
-            padding_amount = y_hat.shape[-1] - y.shape[-1]
-            pad_width = tf.constant([[0, 0], [0, 0], [0, padding_amount]])
-            y = tf.pad(y, pad_width)
-        else:
-            padding_amount = y.shape[-1] - y_hat.shape[-1]
-            pad_width = tf.constant([[0, 0], [0, 0], [0, padding_amount]])
-            y_hat = tf.pad(y_hat, pad_width)
-    print(y.shape)
-    print(y_hat.shape)
+        y_shape = tf.shape(y)
+        y_hat_shape = tf.shape(y_hat)
+        max_dim = tf.maximum(y_shape[-1], y_hat_shape[-1])
+        y = tf.broadcast_to(y, tf.concat([y_shape[:-1], [max_dim]], axis=0))
+        y_hat = tf.broadcast_to(y_hat, tf.concat([y_hat_shape[:-1], [max_dim]], axis=0))
     loss = tf.reduce_mean(tf.abs(y - y_hat))
     return loss
+
 
 
 def l2_loss(y, y_hat):
