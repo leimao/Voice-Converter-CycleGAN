@@ -18,6 +18,9 @@ class CycleGAN(object):
         self.generator = generator
         self.mode = mode
 
+        self.generator_summaries = []
+        self.discriminator_summaries = []
+
         self.build_model()
         self.optimizer_initializer()
 
@@ -112,7 +115,7 @@ class CycleGAN(object):
         self.generator_optimizer = v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(self.generator_loss, var_list=self.generator_vars)
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
-        generation_A, generation_B, generator_loss, _, generator_summaries = self.sess.run(
+        generation_A, generation_B, generator_loss, _, _ = self.sess.run(
             [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries],
             feed_dict={
                 self.lambda_cycle: lambda_cycle,
@@ -122,9 +125,13 @@ class CycleGAN(object):
                 self.generator_learning_rate: generator_learning_rate
             }
         )
-        self.writer.add_summary(generator_summaries, self.train_step)
 
-        discriminator_loss, _, discriminator_summaries = self.sess.run(
+        with self.writer.as_default():
+            for summary in self.generator_summaries:
+                tf.summary.scalar(summary.name, summary, step=self.train_step)
+            self.writer.flush()
+
+        discriminator_loss, _, _ = self.sess.run(
             [self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries],
             feed_dict={
                 self.input_A_real: input_A,
@@ -134,7 +141,11 @@ class CycleGAN(object):
                 self.input_B_fake: generation_B
             }
         )
-        self.writer.add_summary(discriminator_summaries, self.train_step)
+
+        with self.writer.as_default():
+            for summary in self.discriminator_summaries:
+                tf.summary.scalar(summary.name, summary, step=self.train_step)
+            self.writer.flush()
 
         self.train_step += 1
 
@@ -166,19 +177,14 @@ class CycleGAN(object):
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            generator_summaries = v1.summary.merge(
-                [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
-            )
+            self.generator_summaries = [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
             discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-            discriminator_summaries = v1.summary.merge(
-                [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
-            )
+            self.discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
 
-        return generator_summaries, discriminator_summaries
 
 
 # if __name__ == '__main__':
