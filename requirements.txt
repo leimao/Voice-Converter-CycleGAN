@@ -1,6 +1,5 @@
 librosa
 pyworld
-tensorflow
 progressbar2
 argparse
 ffmpeg
