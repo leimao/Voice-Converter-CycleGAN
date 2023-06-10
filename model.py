@@ -114,8 +114,8 @@ class CycleGAN(object):
 
     def optimizer_initializer(self):
   
-        self.generator_learning_rate = tf.placeholder(tf.float32, shape=[], name='generator_learning_rate')
-        self.discriminator_learning_rate = tf.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
+        self.generator_learning_rate = v1.placeholder(tf.float32, shape=[], name='generator_learning_rate')
+        self.discriminator_learning_rate = v1.placeholder(tf.float32, shape=[], name='discriminator_learning_rate')
 
         # Safeguard: Check shapes compatibility before optimizer
         tf.debugging.assert_shapes([(self.generator_loss, 'G_loss'), (self.generator_vars, 'G_vars')])
