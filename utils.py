@@ -12,7 +12,7 @@ def l1_loss(y, y_hat):
     # Checks if shapes are compatible for broadcasting
     if y_shape != y_hat_shape:
         # Reshape or expand dimensions to match shapes
-        if len(y_shape) == len(y_hat_shape):
+        if y_shape == y_hat_shape:
             # Reshape y to match y_hat_shape
             y = tf.reshape(y, y_hat_shape)
         else:
