@@ -79,8 +79,8 @@ class CycleGAN(object):
 
         # Merge the two generators and the cycle loss
         self.generator_loss = (
-            self.generator_loss_A2B
-            + self.generator_loss_B2A
+            tf.reduce_men(self.generator_loss_A2B)
+            + tf.reduce_mean(self.generator_loss_B2A)
             + self.lambda_cycle * self.cycle_loss
             + self.lambda_identity * self.identity_loss
         )
