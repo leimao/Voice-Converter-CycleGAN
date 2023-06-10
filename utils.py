@@ -12,12 +12,18 @@ def l1_loss(y, y_hat):
     # Checks if shapes are compatible for broadcasting
     if y_shape != y_hat_shape:
         # Reshape or expand dimensions to match shapes
-        y = tf.broadcast_to(y, y_hat_shape)  # Reshape y
-        # Or use tf.expand_dims(y, axis) to add dimensions
+        if len(y_shape) == len(y_hat_shape):
+            # Reshape y to match y_hat_shape
+            y = tf.reshape(y, y_hat_shape)
+        else:
+            # Expand dimensions of y to match y_hat_shape
+            y = tf.expand_dims(y, axis=-1)
+            y = tf.broadcast_to(y, y_hat_shape)
         
     # Perform subtraction and calculate absolute difference
     loss = tf.reduce_mean(tf.abs(y - y_hat))
     return loss
+
 
 def l2_loss(y, y_hat):
     return tf.losses.mean_squared_error(y, y_hat)
