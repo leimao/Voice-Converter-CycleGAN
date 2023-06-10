@@ -14,6 +14,8 @@ def l1_loss(y, y_hat):
             padding_amount = y.shape[-1] - y_hat.shape[-1]
             pad_width = tf.constant([[0, 0], [0, 0], [0, padding_amount]])
             y_hat = tf.pad(y_hat, pad_width)
+    print(y.shape)
+    print(y_hat.shape)
     loss = tf.reduce_mean(tf.abs(y - y_hat))
     return loss
 
