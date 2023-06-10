@@ -5,7 +5,9 @@ import numpy as np
 import tensorflow as tf
 
 def l1_loss(y, y_hat):
-    loss = tf.norm(y - y_hat, ord=1) / tf.cast(tf.size(y), dtype=tf.float32)
+    y = tf.cast(y, tf.float32)
+    y_hat = tf.cast(y_hat, tf.float32)
+    loss = tf.reduce_mean(tf.math.abs(y - y_hat))
     return loss
 
 
