@@ -137,14 +137,15 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
                 # Write the data row
                 writer.writerow([num_iterations, generator_loss, discriminator_loss])
 
-        model_name = "{}.ckpt".format(model_prefix)
-        model.save(directory = model_dir, filename = model_name)
-
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
 
         print('Time Elapsed for This Epoch: %02d:%02d:%02d' % (time_elapsed_epoch // 3600, (time_elapsed_epoch % 3600 // 60), (time_elapsed_epoch % 60 // 1)))
-        visualize_loss(generator_losses, discriminator_losses, "Generator Losses", "Discriminator Losses", 'Losses')
+    
+    model_name = "{}.ckpt".format(model_prefix)
+    model.save(directory = model_dir, filename = model_name)
+    visualize_loss(generator_losses, discriminator_losses, "Generator Losses", "Discriminator Losses", 'Losses')
+
 
 
       
