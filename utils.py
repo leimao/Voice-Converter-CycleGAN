@@ -5,22 +5,15 @@ import numpy as np
 import tensorflow as tf
 
 def l1_loss(y, y_hat):
-    # Checks the shapes of y and y_hat
-    y_shape = tf.shape(y)
-    y_hat_shape = tf.shape(y_hat)
-    
-    # Checks if shapes are compatible for broadcasting
-    if y_shape != y_hat_shape:
-        # Reshape or expand dimensions to match shapes
-        if y_shape == y_hat_shape:
-            # Reshape y to match y_hat_shape
-            y = tf.reshape(y, y_hat_shape)
+    if y.shape[-1] != y_hat.shape[-1]:
+        if y.shape[-1] < y_hat.shape[-1]:
+            padding_amount = y_hat.shape[-1] - y.shape[-1]
+            pad_width = tf.constant([[0, 0], [0, 0], [0, padding_amount]])
+            y = tf.pad(y, pad_width)
         else:
-            # Expand dimensions of y to match y_hat_shape
-            y = tf.expand_dims(y, axis=-1)
-            y = tf.broadcast_to(y, y_hat_shape)
-        
-    # Perform subtraction and calculate absolute difference
+            padding_amount = y.shape[-1] - y_hat.shape[-1]
+            pad_width = tf.constant([[0, 0], [0, 0], [0, padding_amount]])
+            y_hat = tf.pad(y_hat, pad_width)
     loss = tf.reduce_mean(tf.abs(y - y_hat))
     return loss
 
