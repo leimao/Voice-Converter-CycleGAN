@@ -5,11 +5,12 @@ from utils import l1_loss, l2_loss
 from datetime import datetime
 import tensorflow as tf
 import tensorflow.compat.v1 as v1
+from tensorflow.python.training.tracking.model import Module
 
 v1.disable_v2_behavior()
 
+class CycleGAN(Module):
 
-class CycleGAN(object):
 
     def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, mode = 'train', log_dir = './log'):
 
@@ -157,19 +158,20 @@ class CycleGAN(object):
 
     def summary(self):
 
-        with v1.name_scope('generator_summaries'):
-            cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
-            identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
-            generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
-            generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
-            generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            generator_summaries =v1.summary.merge([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
+        with tf.name_scope('generator_summaries'):
+            tf.summary.scalar('cycle_loss', self.cycle_loss)
+            tf.summary.scalar('identity_loss', self.identity_loss)
+            tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
+            tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
+            tf.summary.scalar('generator_loss', self.generator_loss)
 
-        with v1.name_scope('discriminator_summaries'):
-            discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
-            discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
-            discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-            discriminator_summaries = v1.summary.merge([discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
+        with tf.name_scope('discriminator_summaries'):
+            tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
+            tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
+            tf.summary.scalar('discriminator_loss', self.discriminator_loss)
+
+        generator_summaries = tf.summary.merge_all(scope='generator_summaries')
+        discriminator_summaries = tf.summary.merge_all(scope='discriminator_summaries')
 
         return generator_summaries, discriminator_summaries
 
