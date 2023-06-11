@@ -180,8 +180,3 @@ class CycleGAN(object):
 
         return generator_summaries, discriminator_summaries
 
-
-# if __name__ == '__main__':
-    
-#     model = CycleGAN(num_features = 24)
-#     print('Graph Compile Successeded.')
