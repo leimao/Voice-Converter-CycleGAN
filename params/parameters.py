@@ -17,7 +17,7 @@ model_dir ='./model'
 model_prefix = 'model_exp'
 
 #############################
-# training logs Parameters
+# Training logs Parameters
 #############################
 train_logs__dir ='./train_log'
 
