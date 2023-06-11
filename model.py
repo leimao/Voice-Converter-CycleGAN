@@ -5,11 +5,10 @@ from utils import l1_loss, l2_loss
 from datetime import datetime
 import tensorflow as tf
 import tensorflow.compat.v1 as v1
-from tensorflow.python.training.tracking.model import Module
 
 v1.disable_v2_behavior()
 
-class CycleGAN(Module):
+class CycleGAN(tf.Module):
 
 
     def __init__(self, num_features, discriminator = discriminator, generator = generator_gatedcnn, mode = 'train', log_dir = './log'):
