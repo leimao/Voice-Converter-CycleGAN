@@ -65,8 +65,9 @@ class CycleGAN(object):
         self.identity_loss = l1_loss(y = self.input_A_real, y_hat = self.generation_A_identity) + l1_loss(y = self.input_B_real, y_hat = self.generation_B_identity)
 
         # Place holder for lambda_cycle and lambda_identity
-        self.lambda_cycle = v1.placeholder(tf.float32, None, name = 'lambda_cycle')
-        self.lambda_identity = v1.placeholder(tf.float32, None, name = 'lambda_identity')
+        self.lambda_cycle = tf.compat.v1.placeholder(tf.float32, shape=[], name='lambda_cycle')
+        self.lambda_identity = tf.compat.v1.placeholder(tf.float32, shape=[], name='lambda_identity')
+
 
         # Generator loss
         # Generator wants to fool discriminator
@@ -76,8 +77,11 @@ class CycleGAN(object):
         # Merge the two generators and the cycle loss
         tf.debugging.assert_scalar(self.cycle_loss, message = 'Cycle loss is not a scalar')
         tf.debugging.assert_scalar(self.identity_loss, message = 'Identity loss is not a scalar')
-        tf.debugging.assert_scalar(self.cycle_loss * self.lambda_cycle, message = 'Cycle loss * lambda_cycle is not a scalar')
-
+        tf.debugging.assert_scalar(self.generator_loss_A2B, message = 'Generator loss A2B is not a scalar')
+        tf.debugging.assert_scalar(self.generator_loss_B2A, message = 'Generator loss B2A is not a scalar')
+        tf.debugging.assert_scalar(self.lambda_cycle, message = 'Lambda cycle is not a scalar')
+        tf.debugging.assert_scalar(self.lambda_identity, message = 'Lambda identity is not a scalar')
+        
         print('Generator loss: ', self.generator_loss_A2B, self.generator_loss_B2A, self.cycle_loss, self.identity_loss)
         self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss + self.lambda_identity * self.identity_loss
 
