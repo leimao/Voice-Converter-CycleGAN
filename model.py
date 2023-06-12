@@ -74,6 +74,10 @@ class CycleGAN(object):
         self.generator_loss_B2A = l2_loss(y = tf.ones_like(self.discrimination_A_fake), y_hat = self.discrimination_A_fake)
 
         # Merge the two generators and the cycle loss
+        tf.debugging.assert_scalar(self.cycle_loss, message = 'Cycle loss is not a scalar')
+        tf.debugging.assert_scalar(self.identity_loss, message = 'Identity loss is not a scalar')
+        tf.debugging.assert_scaler(self.cycle_loss * self.lambda_cycle, message = 'Cycle loss * lambda_cycle is not a scalar')
+
         print('Generator loss: ', self.generator_loss_A2B, self.generator_loss_B2A, self.cycle_loss, self.identity_loss)
         self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss + self.lambda_identity * self.identity_loss
 
