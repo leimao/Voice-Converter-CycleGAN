@@ -74,7 +74,7 @@ class CycleGAN(object):
         self.generator_loss_B2A = l2_loss(y = tf.ones_like(self.discrimination_A_fake), y_hat = self.discrimination_A_fake)
 
         # Merge the two generators and the cycle loss
-        with tf.Session() as sess:
+        with v1.Session() as sess:
             generator_loss_A2B_val, generator_loss_B2A_val, cycle_loss_val, identity_loss_val = sess.run(
                 [self.generator_loss_A2B, self.generator_loss_B2A, self.cycle_loss, self.identity_loss]
             )
@@ -90,7 +90,7 @@ class CycleGAN(object):
         # Discriminator wants to classify real and fake correctly
         self.discriminator_loss_input_A_real = l2_loss(y = tf.ones_like(self.discrimination_input_A_real), y_hat = self.discrimination_input_A_real)
         self.discriminator_loss_input_A_fake = l2_loss(y = tf.zeros_like(self.discrimination_input_A_fake), y_hat = self.discrimination_input_A_fake)
-        with tf.Session() as sess:
+        with v1.Session() as sess:
             discriminator_loss_input_A_real_val, discriminator_loss_input_A_fake_val = sess.run(
                 [self.discriminator_loss_input_A_real, self.discriminator_loss_input_A_fake]
             )
