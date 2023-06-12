@@ -20,6 +20,9 @@ class CycleGAN(object):
         self.generator = generator
         self.mode = mode
 
+        self.generator_summaries = []
+        self.discriminator_summaries = []
+
         self.build_model()
         self.optimizer_initializer()
 
@@ -32,7 +35,7 @@ class CycleGAN(object):
             now = datetime.now()
             self.log_dir = os.path.join(log_dir, now.strftime('%Y%m%d-%H%M%S'))
             self.writer = v1.summary.FileWriter(self.log_dir, v1.get_default_graph())
-            self.generator_summaries, self.discriminator_summaries = self.summary()
+            self.summary()
 
     def build_model(self):
 
@@ -75,14 +78,6 @@ class CycleGAN(object):
         self.generator_loss_B2A = l2_loss(y = tf.ones_like(self.discrimination_A_fake), y_hat = self.discrimination_A_fake)
 
         # Merge the two generators and the cycle loss
-        tf.debugging.assert_scalar(self.cycle_loss, message = 'Cycle loss is not a scalar')
-        tf.debugging.assert_scalar(self.identity_loss, message = 'Identity loss is not a scalar')
-        tf.debugging.assert_scalar(self.generator_loss_A2B, message = 'Generator loss A2B is not a scalar')
-        tf.debugging.assert_scalar(self.generator_loss_B2A, message = 'Generator loss B2A is not a scalar')
-        tf.debugging.assert_scalar(self.lambda_cycle, message = 'Lambda cycle is not a scalar')
-        tf.debugging.assert_scalar(self.lambda_identity, message = 'Lambda identity is not a scalar')
-        
-        print('Generator loss: ', self.generator_loss_A2B, self.generator_loss_B2A, self.cycle_loss, self.identity_loss)
         self.generator_loss = self.generator_loss_A2B + self.generator_loss_B2A + self.lambda_cycle * self.cycle_loss + self.lambda_identity * self.identity_loss
 
         # Discriminator loss
@@ -94,7 +89,6 @@ class CycleGAN(object):
         # Discriminator wants to classify real and fake correctly
         self.discriminator_loss_input_A_real = l2_loss(y = tf.ones_like(self.discrimination_input_A_real), y_hat = self.discrimination_input_A_real)
         self.discriminator_loss_input_A_fake = l2_loss(y = tf.zeros_like(self.discrimination_input_A_fake), y_hat = self.discrimination_input_A_fake)
-        print('Discriminator loss: ', self.discriminator_loss_input_A_real, self.discriminator_loss_input_A_fake)
         self.discriminator_loss_A = (self.discriminator_loss_input_A_real + self.discriminator_loss_input_A_fake) / 2
 
         self.discriminator_loss_input_B_real = l2_loss(y = tf.ones_like(self.discrimination_input_B_real), y_hat = self.discrimination_input_B_real)
@@ -166,22 +160,19 @@ class CycleGAN(object):
 
 
     def summary(self):
-
         with tf.name_scope('generator_summaries'):
             cycle_loss_summary = tf.summary.scalar('cycle_loss', self.cycle_loss)
             identity_loss_summary = tf.summary.scalar('identity_loss', self.identity_loss)
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            generator_summaries =v1.summary.merge([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
+            self.generator_summaries = [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
             discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-            discriminator_summaries = v1.summary.merge([discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
-
-        return generator_summaries, discriminator_summaries
+            self.discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
 
 
 # if __name__ == '__main__':
