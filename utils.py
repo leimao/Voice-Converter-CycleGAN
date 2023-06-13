@@ -17,6 +17,8 @@ def l1_loss(y, y_hat):
     last_dim_y = y.get_shape().as_list()[-1] if y.get_shape().ndims is not None else shape_y[-1]
     last_dim_y_hat = y_hat.get_shape().as_list()[-1] if y_hat.get_shape().ndims is not None else shape_y_hat[-1]
 
+    if last_dim_y is None or last_dim_y_hat is None:
+        return tf.reduce_mean(tf.abs(y - y_hat))
 
 
     if last_dim_y < last_dim_y_hat:
@@ -30,6 +32,7 @@ def l1_loss(y, y_hat):
         padded_y_hat = y_hat
 
     loss = tf.reduce_mean(tf.abs(padded_y - padded_y_hat))
+    print(loss)
     return loss
 
 def l2_loss(y, y_hat):
@@ -38,6 +41,9 @@ def l2_loss(y, y_hat):
 
     last_dim_y = y.get_shape().as_list()[-1] if y.get_shape().ndims is not None else shape_y[-1]
     last_dim_y_hat = y_hat.get_shape().as_list()[-1] if y_hat.get_shape().ndims is not None else shape_y_hat[-1]
+
+    if last_dim_y is None or last_dim_y_hat is None:
+        return tf.reduce_mean(tf.square(y - y_hat))
 
 
     if last_dim_y < last_dim_y_hat:
@@ -51,4 +57,5 @@ def l2_loss(y, y_hat):
         padded_y_hat = y_hat
 
     loss = tf.reduce_mean(tf.square(padded_y - padded_y_hat))
+    print(loss)
     return loss
