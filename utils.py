@@ -7,48 +7,48 @@ def pad_tensor(tensor, target_dim):
     padded_tensor = tf.concat([tensor, tf.zeros(padding_shape)], axis=-1)
     return padded_tensor
 
-def l1_loss(y, y_hat):
-    last_dim_y = y.get_shape().as_list()[-1]
-    last_dim_y_hat = y_hat.get_shape().as_list()[-1]
 
-    if last_dim_y is None or last_dim_y_hat is None:
-        # Handle case where shape is unknown
-        padded_y = y
-        padded_y_hat = y_hat
-    else:
-        # Pad tensors to match the larger dimension
-        if last_dim_y < last_dim_y_hat:
-            padded_y = pad_tensor(y, last_dim_y_hat)
-            padded_y_hat = y_hat
-        elif last_dim_y_hat < last_dim_y:
-            padded_y = y
-            padded_y_hat = pad_tensor(y_hat, last_dim_y)
-        else:
-            padded_y = y
-            padded_y_hat = y_hat
+def l1_loss(y, y_hat):
+    shape_y = tf.shape(y)
+    shape_y_hat = tf.shape(y_hat)
+
+    last_dim_y = shape_y[-1]
+    last_dim_y_hat = shape_y_hat[-1]
+
+    if last_dim_y is None:
+        last_dim_y = y.get_shape().as_list()[-1]
+    if last_dim_y_hat is None:
+        last_dim_y_hat = y_hat.get_shape().as_list()[-1]
+
+    padded_y = tf.cond(last_dim_y < last_dim_y_hat,
+                       lambda: pad_tensor(y, last_dim_y_hat),
+                       lambda: y)
+    padded_y_hat = tf.cond(last_dim_y_hat < last_dim_y,
+                           lambda: pad_tensor(y_hat, last_dim_y),
+                           lambda: y_hat)
 
     loss = tf.reduce_mean(tf.abs(padded_y - padded_y_hat))
     return loss
 
 def l2_loss(y, y_hat):
-    last_dim_y = y.get_shape().as_list()[-1]
-    last_dim_y_hat = y_hat.get_shape().as_list()[-1]
+    shape_y = tf.shape(y)
+    shape_y_hat = tf.shape(y_hat)
 
-    if last_dim_y is None or last_dim_y_hat is None:
-        # Handle case where shape is unknown
-        padded_y = y
-        padded_y_hat = y_hat
-    else:
-        # Pad tensors to match the larger dimension
-        if last_dim_y < last_dim_y_hat:
-            padded_y = pad_tensor(y, last_dim_y_hat)
-            padded_y_hat = y_hat
-        elif last_dim_y_hat < last_dim_y:
-            padded_y = y
-            padded_y_hat = pad_tensor(y_hat, last_dim_y)
-        else:
-            padded_y = y
-            padded_y_hat = y_hat
+    last_dim_y = shape_y[-1]
+    last_dim_y_hat = shape_y_hat[-1]
+
+    if last_dim_y is None:
+        last_dim_y = y.get_shape().as_list()[-1]
+    if last_dim_y_hat is None:
+        last_dim_y_hat = y_hat.get_shape().as_list()[-1]
+
+    padded_y = tf.cond(last_dim_y < last_dim_y_hat,
+                       lambda: pad_tensor(y, last_dim_y_hat),
+                       lambda: y)
+    padded_y_hat = tf.cond(last_dim_y_hat < last_dim_y,
+                           lambda: pad_tensor(y_hat, last_dim_y),
+                           lambda: y_hat)
 
     loss = tf.reduce_mean(tf.square(padded_y - padded_y_hat))
     return loss
+
