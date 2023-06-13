@@ -27,7 +27,7 @@ def l1_loss(y, y_hat):
             padded_y = y
             padded_y_hat = y_hat
 
-    loss = tf.reduce_mean(tf.abs(tf.subtract(padded_y - padded_y_hat)))
+    loss = tf.reduce_mean(tf.abs(tf.subtract(padded_y, padded_y_hat)))
     return loss
 
 def l2_loss(y, y_hat):
@@ -50,5 +50,5 @@ def l2_loss(y, y_hat):
             padded_y = y
             padded_y_hat = y_hat
 
-    loss = tf.reduce_mean(tf.square(tf.subtract(padded_y - padded_y_hat)))
+    loss = tf.reduce_mean(tf.square(tf.subtract(padded_y ,padded_y_hat)))
     return loss
