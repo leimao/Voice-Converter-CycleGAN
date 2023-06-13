@@ -113,7 +113,11 @@ class CycleGAN(object):
 
         self.generator_learning_rate = v1.placeholder(tf.float32, None, name = 'generator_learning_rate')
         self.discriminator_learning_rate = v1.placeholder(tf.float32, None, name = 'discriminator_learning_rate')
+        print('Learning rate: %f, Discriminator Loss: %f, Var List: %f' % (self.discriminator_learning_rate,self.discriminator_loss,self.discriminator_vars))
+        print("")
         self.discriminator_optimizer = v1.train.AdamOptimizer(learning_rate = self.discriminator_learning_rate, beta1 = 0.5).minimize(self.discriminator_loss, var_list = self.discriminator_vars)
+        print('Learning rate: %f, Generator Loss: %f, Var List: %f' % (self.generator_learning_rate,self.generator_loss,self.generator_vars))
+        print("")
         self.generator_optimizer = v1.train.AdamOptimizer(learning_rate = self.generator_learning_rate, beta1 = 0.5).minimize(self.generator_loss, var_list = self.generator_vars) 
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
