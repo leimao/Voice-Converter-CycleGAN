@@ -124,7 +124,11 @@ class CycleGAN(object):
 
         # Inside the training loop
         with self.sess.as_default():
-            self.writer.add_summary(generator_summaries, self.train_step)
+             # Add summaries to the writer
+            summary = v1.Summary()
+            for inner_summary in self.generator_summaries:
+                summary.value.add(tag=inner_summary.name, simple_value=inner_summary)
+            self.writer.add_summary(summary, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
