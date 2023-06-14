@@ -125,7 +125,8 @@ class CycleGAN(object):
         # Inside the training loop
         with self.sess.as_default():
             # Add summaries to the writer
-            self.writer.add_summary(generator_summaries, self.train_step)
+            for summary in generator_summaries:
+                self.writer.add_summary(summary, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -136,7 +137,8 @@ class CycleGAN(object):
 
         with self.sess.as_default():
             # Add summaries to the writer
-            self.writer.add_summary(discriminator_summaries, self.train_step)
+            for summary in discriminator_summaries:
+                self.writer.add_summary(summary, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -179,13 +181,13 @@ class CycleGAN(object):
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', tf.cast(self.generator_loss_A2B,tf.float32))
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', tf.cast(self.generator_loss_B2A,tf.float32))
             generator_loss_summary = tf.summary.scalar('generator_loss', tf.cast(self.generator_loss,tf.float32))
-            generator_summaries = v1.summary.merge([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
+            generator_summaries = [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', tf.cast(self.discriminator_loss_A,tf.float32))
             discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', tf.cast(self.discriminator_loss_B,tf.float32))
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', tf.cast(self.discriminator_loss,tf.float32))
-            discriminator_summaries = v1.summary.merge([discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
+            discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
 
         return generator_summaries, discriminator_summaries
 
