@@ -126,7 +126,7 @@ class CycleGAN(object):
         with self.sess.as_default():
             # Add summaries to the writer
             for summary in generator_summaries:
-                self.writer.add_summary(summary, self.train_step)
+                self.writer.add_summary(self.sess.run(summary), self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -138,7 +138,7 @@ class CycleGAN(object):
         with self.sess.as_default():
             # Add summaries to the writer
             for summary in discriminator_summaries:
-                self.writer.add_summary(summary, self.train_step)
+                self.writer.add_summary(self.sess.run(summary), self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
