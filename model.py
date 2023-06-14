@@ -189,8 +189,8 @@ class CycleGAN(object):
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', tf.cast(self.discriminator_loss, tf.float32))
             discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
 
-        generator_merged_summary = tf.summary.merge(generator_summaries)
-        discriminator_merged_summary = tf.summary.merge(discriminator_summaries)
+        generator_merged_summary = v1.summary.merge(generator_summaries)
+        discriminator_merged_summary = v1.summary.merge(discriminator_summaries)
 
         return generator_merged_summary, discriminator_merged_summary
 
