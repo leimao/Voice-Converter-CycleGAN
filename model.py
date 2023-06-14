@@ -118,7 +118,7 @@ class CycleGAN(object):
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
         generation_A, generation_B, generator_loss, _, _ = self.sess.run(
-            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer_op, self.generator_summaries],
+            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries],
             feed_dict={
                 self.lambda_cycle: lambda_cycle,
                 self.lambda_identity: lambda_identity,
@@ -134,7 +134,7 @@ class CycleGAN(object):
             self.writer.flush()
 
         discriminator_loss, _, _ = self.sess.run(
-            [self.discriminator_loss, self.discriminator_optimizer_op, self.discriminator_summaries],
+            [self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries],
             feed_dict={
                 self.input_A_real: input_A,
                 self.input_B_real: input_B,
