@@ -125,10 +125,7 @@ class CycleGAN(object):
         # Inside the training loop
         with self.sess.as_default():
             # Add summaries to the writer
-            summary = v1.Summary()
-            for inner_summary in generator_summaries:
-                summary.value.add(tag=inner_summary.name, simple_value=self.sess.run(inner_summary))
-            self.writer.add_summary(summary, self.train_step)
+            self.writer.add_summary(generator_summaries, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -139,10 +136,7 @@ class CycleGAN(object):
 
         with self.sess.as_default():
             # Add summaries to the writer
-            summary = v1.Summary()
-            for inner_summary in discriminator_summaries:
-                summary.value.add(tag=inner_summary.name, simple_value=self.sess.run(inner_summary))
-            self.writer.add_summary(summary, self.train_step)
+            self.writer.add_summary(discriminator_summaries, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -185,15 +179,15 @@ class CycleGAN(object):
             generator_loss_A2B_summary = tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
             generator_loss_B2A_summary = tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
             generator_loss_summary = tf.summary.scalar('generator_loss', self.generator_loss)
-            self.generator_summaries = [cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary]
+            generator_summaries = v1.summary.merge_all([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
 
         with tf.name_scope('discriminator_summaries'):
             discriminator_loss_A_summary = tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
             discriminator_loss_B_summary = tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
-            self.discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
+            discriminator_summaries = v1.summary.merge_all([discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
 
-        return self.generator_summaries, self.discriminator_summaries
+        return generator_summaries, discriminator_summaries
 
 # if __name__ == '__main__':
     
