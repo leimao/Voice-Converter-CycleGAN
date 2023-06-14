@@ -117,37 +117,29 @@ class CycleGAN(object):
         self.generator_optimizer = v1.train.AdamOptimizer(learning_rate = self.generator_learning_rate, beta1 = 0.5).minimize(self.generator_loss, var_list = self.generator_vars) 
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
-        generation_A, generation_B, generator_loss, _, _ = self.sess.run(
-            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries],
-            feed_dict={
-                self.lambda_cycle: lambda_cycle,
-                self.lambda_identity: lambda_identity,
-                self.input_A_real: input_A,
-                self.input_B_real: input_B,
-                self.generator_learning_rate: generator_learning_rate
-            }
-        )
 
-        with self.writer.as_default():
-            for summary in self.generator_summaries:
-                tf.summary.scalar(summary.name, summary, step=self.train_step)
-            self.writer.flush()
+        generation_A, generation_B, generator_loss, _, generator_summaries = self.sess.run(
+            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries], \
+            feed_dict = {self.lambda_cycle: lambda_cycle, self.lambda_identity: lambda_identity, self.input_A_real: input_A, self.input_B_real: input_B, self.generator_learning_rate: generator_learning_rate})
 
-        discriminator_loss, _, _ = self.sess.run(
-            [self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries],
-            feed_dict={
-                self.input_A_real: input_A,
-                self.input_B_real: input_B,
-                self.discriminator_learning_rate: discriminator_learning_rate,
-                self.input_A_fake: generation_A,
-                self.input_B_fake: generation_B
-            }
-        )
+        # Inside the training loop
+        with self.sess.as_default():
+            self.writer.add_summary(generator_summaries, self.train_step)
+            self.writer.flush()  # Flush the writer to write the summaries to disk
 
-        with self.writer.as_default():
-            for summary in self.discriminator_summaries:
-                tf.summary.scalar(summary.name, summary, step=self.train_step)
-            self.writer.flush()
+        # Close the writer after adding summaries
+        self.writer.close()
+
+        discriminator_loss, _, discriminator_summaries = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries], \
+            feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.discriminator_learning_rate: discriminator_learning_rate, self.input_A_fake: generation_A, self.input_B_fake: generation_B})
+
+          # Inside the training loop
+        with self.sess.as_default():
+            self.writer.add_summary(discriminator_summaries, self.train_step)
+            self.writer.flush()  # Flush the writer to write the summaries to disk
+
+        # Close the writer after adding summaries
+        self.writer.close()
 
         self.train_step += 1
 
