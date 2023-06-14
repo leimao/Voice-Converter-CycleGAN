@@ -129,7 +129,7 @@ class CycleGAN(object):
             # tf.summary.scalar('identity_loss', self.identity_loss,step=self.training_step)
             # tf.summary.scalar('generator_loss_A2B', self.generator_loss_A2B,step=self.training_step)
             # tf.summary.scalar('generator_loss_B2A', self.generator_loss_B2A,step=self.training_step)
-            tf.summary.scalar('generator_loss', generator_loss,step=self.training_step)
+            tf.summary.scalar('generator_loss', generator_loss,step=self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
        
@@ -140,7 +140,7 @@ class CycleGAN(object):
             # Add summaries to the writer
             # tf.summary.scalar('discriminator_loss_A', self.discriminator_loss_A, step=self.training_step)
             # tf.summary.scalar('discriminator_loss_B', self.discriminator_loss_B,step=self.training_step)
-            tf.summary.scalar('discriminator_loss', discriminator_loss,step=self.training_step)
+            tf.summary.scalar('discriminator_loss', discriminator_loss,step=self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
