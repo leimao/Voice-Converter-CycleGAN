@@ -10,6 +10,7 @@ def pad_tensor(tensor, target_dim):
 def l1_loss(y, y_hat):
     last_dim_y = tf.shape(y)[-1]
     last_dim_y_hat = tf.shape(y_hat)[-1]
+    print(last_dim_y, last_dim_y_hat)
 
     # Pad tensors to match the larger dimension
     padded_y = pad_tensor(y, tf.maximum(last_dim_y, last_dim_y_hat))

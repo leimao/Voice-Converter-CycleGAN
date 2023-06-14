@@ -20,8 +20,8 @@ class CycleGAN(object):
         self.generator = generator
         self.mode = mode
 
-        self.generator_summaries = []
-        self.discriminator_summaries = []
+        # self.generator_summaries = []
+        # self.discriminator_summaries = []
 
         self.build_model()
         self.optimizer_initializer()
@@ -35,7 +35,7 @@ class CycleGAN(object):
             now = datetime.now()
             self.log_dir = os.path.join(log_dir, now.strftime('%Y%m%d-%H%M%S'))
             self.writer = v1.summary.FileWriter(self.log_dir, v1.get_default_graph())
-            self.summary()
+            self.generator_summaries, self.discriminator_summaries = self.summary()
 
     def build_model(self):
 
@@ -124,10 +124,10 @@ class CycleGAN(object):
 
         # Inside the training loop
         with self.sess.as_default():
-             # Add summaries to the writer
+            # Add summaries to the writer
             summary = v1.Summary()
-            for inner_summary in self.generator_summaries:
-                summary.value.add(tag=inner_summary.name, simple_value=inner_summary)
+            for inner_summary in generator_summaries:
+                summary.value.add(tag=inner_summary.name, simple_value=self.sess.run(inner_summary))
             self.writer.add_summary(summary, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
@@ -137,9 +137,12 @@ class CycleGAN(object):
         discriminator_loss, _, discriminator_summaries = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries], \
             feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.discriminator_learning_rate: discriminator_learning_rate, self.input_A_fake: generation_A, self.input_B_fake: generation_B})
 
-          # Inside the training loop
         with self.sess.as_default():
-            self.writer.add_summary(discriminator_summaries, self.train_step)
+            # Add summaries to the writer
+            summary = v1.Summary()
+            for inner_summary in discriminator_summaries:
+                summary.value.add(tag=inner_summary.name, simple_value=self.sess.run(inner_summary))
+            self.writer.add_summary(summary, self.train_step)
             self.writer.flush()  # Flush the writer to write the summaries to disk
 
         # Close the writer after adding summaries
@@ -190,6 +193,7 @@ class CycleGAN(object):
             discriminator_loss_summary = tf.summary.scalar('discriminator_loss', self.discriminator_loss)
             self.discriminator_summaries = [discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary]
 
+        return self.generator_summaries, self.discriminator_summaries
 
 # if __name__ == '__main__':
     
