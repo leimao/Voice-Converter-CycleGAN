@@ -33,9 +33,10 @@ class CycleGAN(object):
             now = datetime.now()
             self.log_dir = os.path.join(
                 log_dir, f"{model_prefix}:{now.strftime('%d-%B-%Y-%I%p')}")
+            if not os.path.exists(self.log_dir):
+                os.makedirs(self.log_dir)
             self.writer = tf.summary.create_file_writer(self.log_dir)
             # self.generator_summaries, self.discriminator_summaries = self.summary()
-
 
     def build_model(self):
 
@@ -142,7 +143,6 @@ class CycleGAN(object):
         self.generation_A_test = self.generator(
             inputs=self.input_B_test, reuse=True, scope_name='generator_B2A')
 
-
     def optimizer_initializer(self):
 
         self.generator_learning_rate = v1.placeholder(
@@ -153,7 +153,6 @@ class CycleGAN(object):
             self.discriminator_loss, var_list=self.discriminator_vars)
         self.generator_optimizer = v1.train.AdamOptimizer(learning_rate=self.generator_learning_rate, beta1=0.5).minimize(
             self.generator_loss, var_list=self.generator_vars)
-
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
 
@@ -208,7 +207,6 @@ class CycleGAN(object):
 
         return generator_loss, discriminator_loss
 
-
     def test(self, inputs, direction):
 
         if direction == 'A2B':
@@ -222,7 +220,6 @@ class CycleGAN(object):
 
         return generation
 
-
     def save(self, directory, filename):
 
         if not os.path.exists(directory):
@@ -230,7 +227,6 @@ class CycleGAN(object):
         self.saver.save(self.sess, os.path.join(directory, filename))
 
         return os.path.join(directory, filename)
-
 
     def load(self, filepath):
 

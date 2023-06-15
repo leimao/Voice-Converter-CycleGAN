@@ -126,7 +126,7 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
 
             if i % 50 == 0:
                 # print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
-                print('Iteration: {:07d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.3f}, Discriminator Loss : {:.3f}'.format(
+                print('Iteration: {:05d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.7f}, Discriminator Loss : {:.7f}'.format(
                     num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
             # save losses to a csv file
