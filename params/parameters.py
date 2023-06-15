@@ -25,4 +25,4 @@ train_logs__dir ='./train_log'
 # Output Parameters
 #############################
 output_dir = './output'
-log_dir = './logs'
+log_dir = '/tmp/mylogs'

@@ -47,8 +47,8 @@ def prepare_data(train_A_dir, train_B_dir):
 
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    np.savez(os.path.join(model_dir, 'logf0s_normalization.npz'), mean_A = log_f0s_mean_A, std_A = log_f0s_std_A, mean_B = log_f0s_mean_B, std_B = log_f0s_std_B)
-    np.savez(os.path.join(model_dir, 'mcep_normalization.npz'), mean_A = coded_sps_A_mean, std_A = coded_sps_A_std, mean_B = coded_sps_B_mean, std_B = coded_sps_B_std)
+    np.savez(os.path.join(model_dir, f'{model_prefix}_logf0s_normalization.npz'), mean_A = log_f0s_mean_A, std_A = log_f0s_std_A, mean_B = log_f0s_mean_B, std_B = log_f0s_std_B)
+    np.savez(os.path.join(model_dir, f'{model_prefix}_mcep_normalization.npz'), mean_A = coded_sps_A_mean, std_A = coded_sps_A_std, mean_B = coded_sps_B_mean, std_B = coded_sps_B_std)
 
     end_time = time.time()
     time_elapsed = end_time - start_time
@@ -83,7 +83,7 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
     model = CycleGAN(num_features = num_mcep)
 
     for epoch in range(num_epochs):
-        print('Epoch: %d' % epoch)
+        print('Epoch: %d/%d' % epoch, num_epochs)
         '''
         if epoch > 60:
             lambda_identity = 0
@@ -97,7 +97,6 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
         dataset_A, dataset_B = sample_train_data(dataset_A = coded_sps_A_norm, dataset_B = coded_sps_B_norm, n_frames = n_frames)
 
         n_samples = dataset_A.shape[0]
-        print('n_samples: %d' % n_samples)
 
         for i in range(n_samples // mini_batch_size):
 
