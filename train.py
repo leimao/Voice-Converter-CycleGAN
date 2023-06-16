@@ -48,11 +48,11 @@ def prepare_data(train_A_dir, train_B_dir):
     coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std = coded_sps_normalization_fit_transoform(
         coded_sps=coded_sps_B_transposed)
 
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-    np.savez(os.path.join(model_dir, f'{model_prefix}_logf0s_normalization.npz'),
+    if not os.path.exists(norm_dir):
+        os.makedirs(norm_dir)
+    np.savez(os.path.join(norm_dir, f'{model_prefix}_logf0s_normalization.npz'),
              mean_A=log_f0s_mean_A, std_A=log_f0s_std_A, mean_B=log_f0s_mean_B, std_B=log_f0s_std_B)
-    np.savez(os.path.join(model_dir, f'{model_prefix}_mcep_normalization.npz'),
+    np.savez(os.path.join(norm_dir, f'{model_prefix}_mcep_normalization.npz'),
              mean_A=coded_sps_A_mean, std_A=coded_sps_A_std, mean_B=coded_sps_B_mean, std_B=coded_sps_B_std)
 
     end_time = time.time()

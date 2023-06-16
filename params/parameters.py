@@ -1,7 +1,7 @@
 #############################
 # Training Parameters
 #############################
-num_of_epochs = 2
+num_of_epochs = 1
 audio_sampling_rate = 16000
 
 #############################
@@ -13,7 +13,7 @@ train_B_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/happ
 #############################
 # Model Parameters
 #############################
-model_dir ='./model'
+model_dir ='/content/drive/MyDrive/Model Assets/Models'
 model_prefix = 'model_exp'
 
 #############################
@@ -24,5 +24,6 @@ train_logs__dir ='./train_log'
 #############################
 # Output Parameters
 #############################
+norm_dir = '/content/drive/MyDrive/Model Assets/Normalizations'
 output_dir = './output'
-log_dir = './train_log/mylogs'
+log_dir = '/content/drive/MyDrive/Model Assets/Logs'
