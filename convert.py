@@ -31,8 +31,10 @@ def conversion(file, conversion_direction='A2B'):
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+    print(mcep_normalization_params)
+    print(logf0s_normalization_params)
     wav, _ = librosa.load(file, sr = sampling_rate, mono = True)
+    visualize_audio(wav,sampling_rate,'Test audio')
     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
     f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
     coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = num_features)

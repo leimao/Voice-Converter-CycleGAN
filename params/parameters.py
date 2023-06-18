@@ -13,8 +13,8 @@ train_B_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/happ
 #############################
 # Model Parameters
 #############################
-model_dir ='/content/drive/MyDrive/Model Assets/Models'
 model_prefix = 'model_exp'
+model_dir =f'/content/drive/MyDrive/Model Assets/Models/{model_prefix}'
 
 #############################
 # Training logs Parameters
