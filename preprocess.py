@@ -91,6 +91,7 @@ def world_decode_data(coded_sps, fs):
 
 def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
     num_channels = decoded_sp.shape[0]  # Number of channels/frames
+    print(num_channels)
 
     # Initialize an empty list to store the synthesized waveforms
     synthesized_wavs = []
@@ -98,6 +99,8 @@ def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
     for i in range(num_channels):
         # Select the current channel/frame
         selected_sp = decoded_sp[i]
+        print(len(selected_sp))
+        print(selected_sp)
 
         # Synthesize the speech waveform for the selected channel/frame
         wav = pyworld.synthesize(f0, selected_sp, ap, fs, frame_period)
