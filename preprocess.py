@@ -93,9 +93,9 @@ def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
 
     #decoded_sp = decoded_sp.astype(np.float64)
     print()
-    print('Shape of passed F0 converted: {}'.format(f0))
-    print('Shape of passed Decoded SP: {}'.format(decoded_sp))
-    print('Shape of passed Ap: {}'.format(ap))
+    print('Shape of passed F0 converted: {}'.format(f0.shape))
+    print('Shape of passed Decoded SP: {}'.format(decoded_sp.shape))
+    print('Shape of passed Ap: {}'.format(ap.shape))
 
 
     
