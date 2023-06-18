@@ -35,6 +35,10 @@ def conversion(file, conversion_direction='A2B'):
     wav, _ = librosa.load(file, sr = sampling_rate, mono = True)
     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
     f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
+    print('Shape of F0: {}'.format(f0))
+    print('Shape of SP: {}'.format(sp))
+    print('Shape of AP: {}'.format(ap))
+    print()
     coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = num_features)
     coded_sp_transposed = coded_sp.T
 
@@ -50,10 +54,16 @@ def conversion(file, conversion_direction='A2B'):
         coded_sp_norm = (coded_sp_transposed - mcep_mean_B) / mcep_std_B
         coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = conversion_direction)[0]
         coded_sp_converted = coded_sp_converted_norm * mcep_std_A + mcep_mean_A
-    print(f0.shape,ap.shape,coded_sp_converted.shape)
+   
+    print('Shape of coded Sp Converted Norm: {}'.format(coded_sp_converted_norm))
+    print('Shape of Coded SP Converted before transpose: {}'.format(coded_sp_converted))
+    print()
     coded_sp_converted = coded_sp_converted.T
     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
+    print('Shape of F0 Converted: {}'.format(f0_converted))
+    print('Shape of SP Converted: {}'.format(decoded_sp_converted))
+    print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted))
     wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
     librosa.output.write_wav(os.path.join(output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
