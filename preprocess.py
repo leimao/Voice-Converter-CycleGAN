@@ -44,7 +44,7 @@ def world_decode_spectral_envelop(coded_sp, fs):
     # coded_sp = coded_sp.astype(np.float32)
     # coded_sp = np.ascontiguousarray(coded_sp)
     decoded_sp = pyworld.decode_spectral_envelope(coded_sp.astype(np.float64), fs, fftlen)
-
+    print(decoded_sp)
     return decoded_sp
 
 
@@ -92,7 +92,8 @@ def world_decode_data(coded_sps, fs):
 def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
 
     #decoded_sp = decoded_sp.astype(np.float64)
-    wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+    print(decoded_sp)
+    wav = pyworld.synthesize(f0, decoded_sp[:, 0], ap, fs, frame_period)
     # Librosa could not save wav if not doing so
     wav = wav.astype(np.float32)
 
