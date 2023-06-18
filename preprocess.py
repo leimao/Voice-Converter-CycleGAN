@@ -181,14 +181,17 @@ def logf0_statistics(f0s):
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
     EPSILON = 1e-10  # Small constant value
     
-    # Broadcasting the arrays to have compatible shapes
-    mean_log_src = mean_log_src.flatten()
-    std_log_src = std_log_src.flatten()
-    mean_log_target = mean_log_target.flatten()
-    std_log_target = std_log_target.flatten()
+    # Reshape arrays to have compatible shapes
+    f0 = f0.reshape(-1, 1)
+    mean_log_src = mean_log_src.reshape(1, -1)
+    std_log_src = std_log_src.reshape(1, -1)
+    mean_log_target = mean_log_target.reshape(1, -1)
+    std_log_target = std_log_target.reshape(1, -1)
     
     f0_converted = np.exp((np.log(f0 + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
+    f0_converted = f0_converted.flatten()
     return f0_converted
+
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
 
