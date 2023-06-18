@@ -92,6 +92,9 @@ def world_decode_data(coded_sps, fs):
 def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
 
     #decoded_sp = decoded_sp.astype(np.float64)
+    print(f0.shape)
+    print(decoded_sp.shape)
+    print(ap.shape)
     
     wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
     # Librosa could not save wav if not doing so
