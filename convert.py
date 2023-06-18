@@ -33,13 +33,9 @@ def conversion(file, conversion_direction='A2B'):
         os.makedirs(output_dir)
 
     print('Mean Log Src: {}'.format(logf0s_mean_A.shape))
-    print(logf0s_mean_A)
-    print('Std Log SRC'.format(logf0s_std_A.shape))
-    print(logf0s_std_A)
-    print('Mean log Target'.format(logf0s_mean_B.shape))
-    print(logf0s_mean_B)
-    print('Std log Target'.format(logf0s_std_B.shape))
-    print(logf0s_std_B)
+    print('Std Log SRC: {}'.format(logf0s_std_A.shape))
+    print('Mean log Target: {}'.format(logf0s_mean_B.shape))
+    print('Std log Target: {}'.format(logf0s_std_B.flatten().shape))
 
     wav, _ = librosa.load(file, sr = sampling_rate, mono = True)
     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)

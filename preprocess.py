@@ -179,10 +179,14 @@ def logf0_statistics(f0s):
     return log_f0s_mean, log_f0s_std
 
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
-
-    # Logarithm Gaussian normalization for Pitch Conversions
     EPSILON = 1e-10  # Small constant value
-
+    
+    # Broadcasting the arrays to have compatible shapes
+    mean_log_src = mean_log_src.flatten()
+    std_log_src = std_log_src.flatten()
+    mean_log_target = mean_log_target.flatten()
+    std_log_target = std_log_target.flatten()
+    
     f0_converted = np.exp((np.log(f0 + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
     return f0_converted
 
