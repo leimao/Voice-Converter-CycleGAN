@@ -90,28 +90,14 @@ def world_decode_data(coded_sps, fs):
 
 
 def world_speech_synthesis(f0, decoded_sp, ap, fs, frame_period):
-    num_channels = decoded_sp.shape[0]  # Number of channels/frames
-    print(num_channels)
 
-    # Initialize an empty list to store the synthesized waveforms
-    synthesized_wavs = []
+    #decoded_sp = decoded_sp.astype(np.float64)
+    
+    wav = pyworld.synthesize(f0, decoded_sp, ap, fs, frame_period)
+    # Librosa could not save wav if not doing so
+    wav = wav.astype(np.float32)
 
-    for i in range(num_channels):
-        # Select the current channel/frame
-        selected_sp = decoded_sp[i]
-        print(len(selected_sp))
-        print(selected_sp)
-
-        # Synthesize the speech waveform for the selected channel/frame
-        wav = pyworld.synthesize(f0, selected_sp, ap, fs, frame_period)
-
-        # Convert the waveform to float32
-        wav = wav.astype(np.float32)
-
-        # Append the synthesized waveform to the list
-        synthesized_wavs.append(wav)
-
-    return synthesized_wavs
+    return wav
 
 
 def world_synthesis_data(f0s, decoded_sps, aps, fs, frame_period):
