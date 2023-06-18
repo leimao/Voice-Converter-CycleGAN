@@ -50,7 +50,7 @@ def conversion(file, conversion_direction='A2B'):
         coded_sp_norm = (coded_sp_transposed - mcep_mean_B) / mcep_std_B
         coded_sp_converted_norm = model.test(inputs = np.array([coded_sp_norm]), direction = conversion_direction)[0]
         coded_sp_converted = coded_sp_converted_norm * mcep_std_A + mcep_mean_A
-
+    print(f0.shape,ap.shape,coded_sp_converted.shape)
     coded_sp_converted = coded_sp_converted.T
     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
