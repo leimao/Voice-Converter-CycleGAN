@@ -17,13 +17,13 @@ def conversion(file, conversion_direction='A2B'):
     model_name = "{}.ckpt".format(model_prefix)
     model.load(filepath = os.path.join(model_dir, model_name))
 
-    mcep_normalization_params = np.load(os.path.join(model_dir, f'{model_prefix}_logf0s_normalization.npz'))
+    mcep_normalization_params = np.load(os.path.join(norm_dir, f'{model_prefix}_logf0s_normalization.npz'))
     mcep_mean_A = mcep_normalization_params['mean_A']
     mcep_std_A = mcep_normalization_params['std_A']
     mcep_mean_B = mcep_normalization_params['mean_B']
     mcep_std_B = mcep_normalization_params['std_B']
 
-    logf0s_normalization_params = np.load(os.path.join(model_dir, f'{model_prefix}_mcep_normalization.npz'))
+    logf0s_normalization_params = np.load(os.path.join(norm_dir, f'{model_prefix}_mcep_normalization.npz'))
     logf0s_mean_A = logf0s_normalization_params['mean_A']
     logf0s_std_A = logf0s_normalization_params['std_A']
     logf0s_mean_B = logf0s_normalization_params['mean_B']
