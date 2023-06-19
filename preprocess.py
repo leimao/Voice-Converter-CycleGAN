@@ -182,10 +182,10 @@ def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_tar
     EPSILON = 1e-10  # Small constant value
     
     # Broadcasting the arrays to have compatible shapes
-    mean_log_src = np.broadcast_to(mean_log_src, f0.shape)
-    std_log_src = np.broadcast_to(std_log_src, f0.shape)
-    mean_log_target = np.broadcast_to(mean_log_target, f0.shape)
-    std_log_target = np.broadcast_to(std_log_target, f0.shape)
+    mean_log_src = np.broadcast_to(mean_log_src.squeeze(), f0.shape)
+    std_log_src = np.broadcast_to(std_log_src.squeeze(), f0.shape)
+    mean_log_target = np.broadcast_to(mean_log_target.squeeze(), f0.shape)
+    std_log_target = np.broadcast_to(std_log_target.squeeze(), f0.shape)
     
     f0_converted = np.exp((np.log(f0 + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
     return f0_converted
