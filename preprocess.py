@@ -180,19 +180,16 @@ def logf0_statistics(f0s):
 
 
 
+
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
     EPSILON = 1e-10  # Small constant value
 
-    f0_converted = []  # Create an empty list to store the converted values
+    f0_converted = np.exp((np.log(f0 + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
+    f0_converted = f0_converted.T.flatten()  # Transpose and flatten the array
 
-    for i in range(f0.shape[0]):
-        converted_value = np.exp((np.log(f0[i] + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
-        f0_converted.append(converted_value)
-
-    f0_converted = np.array(f0_converted)  # Convert the list to a NumPy array
-
-    print(f0_converted)
+    print(f0_converted.shape)
     return f0_converted
+
 
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
