@@ -180,7 +180,7 @@ def logf0_statistics(f0s):
 
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
     # Reshape the arrays to have compatible shapes
-    f0 = f0[:, np.newaxis]  # Reshape f0 to (716, 1)
+    f0 =  np.expand_dims(f0, axis=-1)  # Reshape f0 to (716, 1)
 
     # Perform element-wise calculations
     EPSILON = 1e-10
