@@ -86,9 +86,8 @@ def pixel_shuffler(inputs, shuffle_size=2, name=None):
     return outputs
 
 def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
-     # inputs has shape [batch_size, num_features, time]
+    # inputs has shape [batch_size, num_features, time]
     # we need to convert it to [batch_size, time, num_features] for 1D convolution
-    
     inputs = tf.transpose(inputs, perm=[0, 2, 1], name='input_transpose')
 
     with tf.compat.v1.variable_scope(scope_name, reuse=reuse) as scope:
@@ -115,14 +114,15 @@ def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
         r6 = residual1d_block(inputs=r5, filters=1024, kernel_size=3, strides=1, name_prefix='residual1d_block6_')
 
         # Upsample
-        u1 = upsample1d_block(inputs=r6, filters=1024, kernel_size=5, strides=1, name_prefix='upsample1d_block1_')
-        u2 = upsample1d_block(inputs=u1, filters=512, kernel_size=5, strides=1, name_prefix='upsample1d_block2_')
+        u1 = upsample1d_block(inputs=r6, filters=512, kernel_size=5, strides=1, name_prefix='upsample1d_block1_')
+        u2 = upsample1d_block(inputs=u1, filters=256, kernel_size=5, strides=1, name_prefix='upsample1d_block2_')
 
         # Output
         o1 = conv1d_layer(inputs=u2, filters=24, kernel_size=15, strides=1, activation=None, name='o1_conv')
         o2 = tf.transpose(o1, perm=[0, 2, 1], name='output_transpose')
 
     return o2
+
 
 def discriminator(inputs, reuse=False, scope_name='discriminator'):
       # inputs has shape [batch_size, num_features, time]
