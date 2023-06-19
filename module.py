@@ -111,7 +111,7 @@ def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
         u1 = upsample1d_block(inputs=r5, filters=512, kernel_size=5, strides=2, name_prefix='upsample1d_block1_')
         u2 = upsample1d_block(inputs=u1, filters=256, kernel_size=5, strides=2, name_prefix='upsample1d_block2_')
 
-        h2 = conv1d_layer(inputs=u2, filters=1, kernel_size=15, strides=1, activation='tanh', name='h2_conv')
+        h2 = conv1d_layer(inputs=u2, filters=24, kernel_size=15, strides=1, activation='tanh', name='h2_conv')
 
         # Output shape: [batch_size, time, num_features]
         # We need to convert it back to [batch_size, num_features, time]
