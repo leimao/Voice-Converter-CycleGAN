@@ -168,16 +168,16 @@ class CycleGAN(object):
             })
 
         # Add summaries to the writer
-        self.writer.add_summary(cycle_loss,
+        self.writer.add_summary(tf.summary.scalar('cycle_loss', cycle_loss),
                                 self.train_step)
-        self.writer.add_summary(identity_loss,
+        self.writer.add_summary(tf.summary.scalar('identity_loss', identity_loss),
                                 self.train_step)
         self.writer.add_summary(
-            generator_loss_A2B, self.train_step)
+             tf.summary.scalar('generator_loss_A2B', generator_loss_A2B), self.train_step)
         self.writer.add_summary(
-            generator_loss_B2A, self.train_step)
+            tf.summary.scalar('generator_loss_B2A', generator_loss_B2A), self.train_step)
         self.writer.add_summary(
-            generator_loss, self.train_step)
+            tf.summary.scalar('generator_loss', generator_loss), self.train_step)
 
         discriminator_loss, _, discriminator_loss_A, discriminator_loss_B = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_loss_A, self.discriminator_loss_B],
                                                                                           feed_dict={self.input_A_real: input_A,
@@ -188,11 +188,11 @@ class CycleGAN(object):
 
         # Add summaries to the writer
         self.writer.add_summary(
-            discriminator_loss_A, self.train_step)
+            tf.summary.scalar('discriminator_loss_A', discriminator_loss_A), self.train_step)
         self.writer.add_summary(
-            discriminator_loss_B, self.train_step)
+            tf.summary.scalar('discriminator_loss_B', discriminator_loss_B), self.train_step)
         self.writer.add_summary(
-            discriminator_loss, self.train_step)
+            tf.summary.scalar('discriminator_loss', discriminator_loss), self.train_step)
 
         # Increment the training step
         self.train_step += 1
