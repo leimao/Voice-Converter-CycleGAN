@@ -179,17 +179,13 @@ def logf0_statistics(f0s):
     return log_f0s_mean, log_f0s_std
 
 
-
-
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
     EPSILON = 1e-10  # Small constant value
 
-    f0_converted = np.exp((np.log(f0 + EPSILON) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
-    f0_converted = f0_converted.T.flatten()  # Transpose and flatten the array
-
-    print(f0_converted.shape)
+    log_f0 = np.log(f0 + EPSILON)
+    f0_converted = np.exp((log_f0 - mean_log_src) / std_log_src * std_log_target + mean_log_target)
+    
     return f0_converted
-
 
 
 def wavs_to_specs(wavs, n_fft = 1024, hop_length = None):
