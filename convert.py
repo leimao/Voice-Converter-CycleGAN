@@ -76,7 +76,7 @@ def conversion(file, conversion_direction='A2B'):
     print('Shape of F0 Converted: {}'.format(f0_converted.shape))
     print('Shape of SP Converted: {}'.format(decoded_sp_converted.shape))
     print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted.shape))
-    wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
 
     visualize_audio(wav,sampling_rate,'Monotone audio')
     visualize_audio(wav_transformed,sampling_rate,'Synthesised audio')
