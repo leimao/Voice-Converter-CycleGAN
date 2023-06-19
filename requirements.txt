@@ -5,3 +5,4 @@ argparse
 ffmpeg
 ipython
 numpy==1.23.1
+soundfile
