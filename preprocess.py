@@ -191,9 +191,10 @@ def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_tar
     std_log_target = np.pad(std_log_target, ((0, f0_shape[0] - std_log_target.shape[0]), (0, 0)), mode='constant', constant_values=np.mean(std_log_target))
 
     print(std_log_src.shape)
+    f0=f0[:, np.newaxis]
     log_f0 = np.log(f0 + EPSILON)
     log_f0_normalized = (log_f0 - mean_log_src) / std_log_src
-    
+    print(log_f0_normalized.shape)
     f0_converted = np.exp(log_f0_normalized * std_log_target + mean_log_target)
     
     return f0_converted
