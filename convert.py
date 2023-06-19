@@ -6,6 +6,7 @@ import numpy as np
 from model import CycleGAN
 from preprocess import *
 import soundfile as sf
+from pyworld import interp1d,interpolate
 
 
 def conversion(file, conversion_direction='A2B'):
@@ -68,15 +69,22 @@ def conversion(file, conversion_direction='A2B'):
     coded_sp_converted = coded_sp_converted.T
     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
-    # Calculate the amount of padding needed
-    pad_width = ((0, f0_converted.shape[0] - decoded_sp_converted.shape[0]), (0, 0))
 
-    # Pad the array with zeroes
-    transformed_decoded_sp_converted = np.pad(decoded_sp_converted, pad_width, mode='constant')
     print('Shape of F0 Converted: {}'.format(f0_converted.shape))
     print('Shape of SP Converted: {}'.format(decoded_sp_converted.shape))
     print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted.shape))
-    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+    # Define the desired length for alignment
+    desired_length = decoded_sp_converted.shape[0]
+
+    # Truncate the spectrogram, F0, and aperiodicity to the desired length
+    decoded_sp_converted = decoded_sp_converted[:desired_length, :]
+    f0 = f0[:desired_length]
+    ap = ap[:desired_length, :]
+
+    print('Shape of F0 after truncation: {}'.format(f0.shape))
+    print('Shape of SP after truncation: {}'.format(decoded_sp_converted.shape))
+    print('Shape of AP  after truncation: {}'.format(ap.shape))
+    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
 
     visualize_audio(wav,sampling_rate,'Monotone audio')
     visualize_audio(wav_transformed,sampling_rate,'Synthesised audio')
