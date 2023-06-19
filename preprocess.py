@@ -181,9 +181,18 @@ def logf0_statistics(f0s):
 
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
     EPSILON = 1e-10  # Small constant value
+    
+    f0_shape = f0.shape
+    
+    mean_log_src = np.pad(mean_log_src, (0, f0_shape[0] - mean_log_src.shape[0]), mode='mean')
+    std_log_src = np.pad(std_log_src, (0, f0_shape[0] - std_log_src.shape[0]), mode='mean')
+    mean_log_target = np.pad(mean_log_target, (0, f0_shape[0] - mean_log_target.shape[0]), mode='mean')
+    std_log_target = np.pad(std_log_target, (0, f0_shape[0] - std_log_target.shape[0]), mode='mean')
 
     log_f0 = np.log(f0 + EPSILON)
-    f0_converted = np.exp((log_f0 - mean_log_src) / std_log_src * std_log_target + mean_log_target)
+    log_f0_normalized = np.divide((log_f0 - mean_log_src), std_log_src, out=np.zeros_like(log_f0_normalized), where=std_log_src!=0)
+    
+    f0_converted = np.exp(np.multiply(log_f0_normalized, std_log_target) + mean_log_target)
     
     return f0_converted
 
