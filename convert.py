@@ -34,11 +34,6 @@ def conversion(file, conversion_direction='A2B'):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    print('Mean Log Src: {}'.format(logf0s_mean_A.shape))
-    print('Std Log SRC: {}'.format(logf0s_std_A.shape))
-    print('Mean log Target: {}'.format(logf0s_mean_B.shape))
-    print('Std log Target: {}'.format(logf0s_std_B.flatten().shape))
-
     wav, _ = librosa.load(file, sr = sampling_rate, mono = True)
     wav = wav_padding(wav = wav, sr = sampling_rate, frame_period = frame_period, multiple = 4)
     f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
@@ -46,6 +41,8 @@ def conversion(file, conversion_direction='A2B'):
     print('Shape of SP: {}'.format(sp.shape))
     print('Shape of AP: {}'.format(ap.shape))
     print()
+    print('Shape of Coded Sp Norm: {}'.format(coded_sp_norm.shape))
+
     coded_sp = world_encode_spectral_envelop(sp = sp, fs = sampling_rate, dim = num_features)
     coded_sp_transposed = coded_sp.T
 
@@ -72,18 +69,18 @@ def conversion(file, conversion_direction='A2B'):
     print('Shape of F0 Converted: {}'.format(f0_converted.shape))
     print('Shape of SP Converted: {}'.format(decoded_sp_converted.shape))
     print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted.shape))
-    # Define the desired length for alignment
-    desired_length = decoded_sp_converted.shape[0]
 
-    # Truncate the spectrogram, F0, and aperiodicity to the desired length
-    decoded_sp_converted = decoded_sp_converted[:desired_length, :]
-    f0 = f0[:desired_length]
-    ap = ap[:desired_length, :]
+    # Get the portion of A from B's shape[0] to the last row
+    values = sp[decoded_sp_converted.shape[0]:, :]
+
+    # Concatenate the portion of A and B
+    transformed_decoded_sp_converted = np.concatenate((decoded_sp_converted, values), axis=0)
+
 
     print('Shape of F0 after truncation: {}'.format(f0.shape))
-    print('Shape of SP after truncation: {}'.format(decoded_sp_converted.shape))
+    print('Shape of SP after truncation: {}'.format(transformed_decoded_sp_converted.shape))
     print('Shape of AP  after truncation: {}'.format(ap.shape))
-    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
 
     visualize_audio(wav,sampling_rate,'Monotone audio')
     visualize_audio(wav_transformed,sampling_rate,'Synthesised audio')
