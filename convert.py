@@ -6,7 +6,6 @@ import numpy as np
 from model import CycleGAN
 from preprocess import *
 import soundfile as sf
-from pyworld import interp1d,interpolate
 
 
 def conversion(file, conversion_direction='A2B'):
