@@ -194,7 +194,6 @@ def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_tar
     log_f0 = np.log(f0 + EPSILON)
     log_f0_normalized = (log_f0 - mean_log_src) / std_log_src
     f0_converted = np.exp(log_f0_normalized * std_log_target + mean_log_target)
-    print('p',f0_converted.squeeze())
     
     return f0_converted.squeeze()
 

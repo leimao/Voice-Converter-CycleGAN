@@ -66,10 +66,15 @@ def conversion(file, conversion_direction='A2B'):
     coded_sp_converted = coded_sp_converted.T
     coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
     decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
+    # Calculate the amount of padding needed
+    pad_width = ((0, f0_converted.shape[0] - decoded_sp_converted.shape[0]), (0, 0))
+
+    # Pad the array with zeroes
+    transformed_decoded_sp_converted = np.pad(decoded_sp_converted, pad_width, mode='constant')
     print('Shape of F0 Converted: {}'.format(f0_converted.shape))
     print('Shape of SP Converted: {}'.format(decoded_sp_converted.shape))
     print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted.shape))
-    wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+    wav_transformed = world_speech_synthesis(f0 = f0_converted, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
     librosa.output.write_wav(os.path.join(output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
     visualize_audio(wav,sampling_rate,'Monotone audio')
