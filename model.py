@@ -3,6 +3,7 @@ import os
 from module import discriminator, generator_gatedcnn
 from utils import l1_loss, l2_loss
 from datetime import datetime
+import zipfile
 import tensorflow as tf
 import tensorflow.compat.v1 as v1
 
@@ -185,17 +186,26 @@ class CycleGAN(object):
 
         return generation
 
-    def save(self, directory, filename):
+    def save(self, directory, filename,compressedname):
 
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+        # Save the session variables to a checkpoint file
         self.saver.save(self.sess, os.path.join(directory, filename))
 
-        print(os.path.join(directory, filename))
-        return os.path.join(directory, filename)
+        # Compress the checkpoint file using zip
+        with zipfile.ZipFile(os.path.join(directory, compressedname), 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(os.path.join(directory, filename))
 
-    def load(self, filepath):
+        # Delete the uncompressed checkpoint file
+        tf.io.gfile.remove( os.path.join(directory, filename))
 
+
+    def load(self, filepath,compressedpath):
+        # Extract the compressed model file
+        with zipfile.ZipFile(compressedpath, 'r') as zipf:
+            zipf.extractall(filepath)
         self.saver.restore(self.sess, filepath)
 
     def summary(self):
