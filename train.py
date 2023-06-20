@@ -129,6 +129,9 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
                 print('Iteration: {:05d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.7f}, Discriminator Loss : {:.7f}'.format(
                     num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
+            if not os.path.exists(train_logs__dir):
+                os.makedirs(train_logs__dir)
+                
             # save losses to a csv file
             losses_csv_path = os.path.join(train_logs__dir, f'{model_prefix}_losses.csv')
 
