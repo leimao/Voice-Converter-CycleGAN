@@ -181,6 +181,10 @@ def logf0_statistics(f0s):
 
 
 def pitch_conversion(f0, mean_log_src, std_log_src, mean_log_target, std_log_target):
+    print('Shape of mean_log_src: {}'.format(mean_log_src.shape))
+    print('Shape of std_log_src: {}'.format(std_log_src.shape))
+    print('Shape of mean_log_target: {}'.format(mean_log_target.shape))
+    print('Shape of std_log_target: {}'.format(std_log_target.shape))
     EPSILON = 1e-10  # Small constant value
     
     f0_shape = f0.shape
