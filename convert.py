@@ -16,7 +16,7 @@ def conversion(file, conversion_direction='A2B'):
 
     model = CycleGAN(num_features = num_features, mode = 'test')
 
-    model_name = "{}.ckpt".format(model_prefix)
+    model_name = "{}".format(model_prefix)
     model_compresed_name = "{}.zip".format(model_prefix)
     model.load(filepath = os.path.join(model_dir, model_name),compressedpath=os.path.join(model_dir, model_compresed_name))
 
