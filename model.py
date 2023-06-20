@@ -5,6 +5,7 @@ from utils import l1_loss, l2_loss
 from datetime import datetime
 import zipfile
 import re
+import shutil
 import tensorflow as tf
 import tensorflow.compat.v1 as v1
 
@@ -236,7 +237,7 @@ class CycleGAN(object):
             zipf.extractall(filepath)
         self.saver.restore(self.sess, filepath+f'/{model_prefix}.ckpt')
 
-        os.rmdir(filepath)
+        shutil.rmtree(filepath, ignore_errors=True)
 
 
     def summary(self):
