@@ -35,8 +35,8 @@ class CycleGAN(object):
                 log_dir, f"{model_prefix}:{now.strftime('%d-%B-%Y-%I%p')}")
             if not os.path.exists(self.log_dir):
                 os.makedirs(self.log_dir)
-            self.writer = tf.summary.create_file_writer(self.log_dir)
-            # self.generator_summaries, self.discriminator_summaries = self.summary()
+            self.writer = v1.summary.FileWriter(self.log_dir, v1.get_default_graph())
+            self.generator_summaries, self.discriminator_summaries = self.summary()
 
     def build_model(self):
 
@@ -156,50 +156,16 @@ class CycleGAN(object):
 
     def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
 
-        generation_A, generation_B, generator_loss, _, cycle_loss, identity_loss, generator_loss_A2B, generator_loss_B2A = self.sess.run(
-            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer,
-                self.cycle_loss, self.identity_loss, self.generator_loss_A2B, self.generator_loss_B2A],
-            feed_dict={
-                self.lambda_cycle: lambda_cycle,
-                self.lambda_identity: lambda_identity,
-                self.input_A_real: input_A,
-                self.input_B_real: input_B,
-                self.generator_learning_rate: generator_learning_rate
-            })
+        generation_A, generation_B, generator_loss, _, generator_summaries = self.sess.run(
+            [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries], \
+            feed_dict = {self.lambda_cycle: lambda_cycle, self.lambda_identity: lambda_identity, self.input_A_real: input_A, self.input_B_real: input_B, self.generator_learning_rate: generator_learning_rate})
 
-        # Inside the training loop
-        with self.writer.as_default():
-            # Add summaries to the writer
-            tf.summary.scalar('cycle_loss', cycle_loss,
-                              step=self.train_step)
-            tf.summary.scalar('identity_loss', identity_loss,
-                              step=self.train_step)
-            tf.summary.scalar('generator_loss_A2B',
-                              generator_loss_A2B, step=self.train_step)
-            tf.summary.scalar('generator_loss_B2A',
-                              generator_loss_B2A, step=self.train_step)
-            tf.summary.scalar('generator_loss',
-                              generator_loss, step=self.train_step)
-            self.writer.flush()  # Flush the writer to write the summaries to disk
+        self.writer.add_summary(generator_summaries, self.train_step)
 
+        discriminator_loss, _, discriminator_summaries = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_summaries], \
+            feed_dict = {self.input_A_real: input_A, self.input_B_real: input_B, self.discriminator_learning_rate: discriminator_learning_rate, self.input_A_fake: generation_A, self.input_B_fake: generation_B})
 
-        discriminator_loss, _, discriminator_loss_A, discriminator_loss_B = self.sess.run([self.discriminator_loss, self.discriminator_optimizer, self.discriminator_loss_A, self.discriminator_loss_B],
-                                                                                          feed_dict={self.input_A_real: input_A,
-                                                                                                     self.input_B_real: input_B,
-                                                                                                     self.discriminator_learning_rate: discriminator_learning_rate,
-                                                                                                     self.input_A_fake: generation_A, self.input_B_fake: generation_B
-                                                                                                     })
-
-        with self.writer.as_default():
-            # Add summaries to the writer
-            tf.summary.scalar('discriminator_loss_A',
-                              discriminator_loss_A, step=self.train_step)
-            tf.summary.scalar('discriminator_loss_B',
-                              discriminator_loss_B, step=self.train_step)
-            tf.summary.scalar('discriminator_loss',
-                              discriminator_loss, step=self.train_step)
-            self.writer.flush()  # Flush the writer to write the summaries to disk
-
+        self.writer.add_summary(discriminator_summaries, self.train_step)
 
         # Increment the training step
         self.train_step += 1
@@ -230,3 +196,21 @@ class CycleGAN(object):
     def load(self, filepath):
 
         self.saver.restore(self.sess, filepath)
+
+    def summary(self):
+
+        with v1.name_scope('generator_summaries'):
+            cycle_loss_summary =v1.summary.scalar('cycle_loss', self.cycle_loss)
+            identity_loss_summary =v1.summary.scalar('identity_loss', self.identity_loss)
+            generator_loss_A2B_summary =v1.summary.scalar('generator_loss_A2B', self.generator_loss_A2B)
+            generator_loss_B2A_summary =v1.summary.scalar('generator_loss_B2A', self.generator_loss_B2A)
+            generator_loss_summary =v1.summary.scalar('generator_loss', self.generator_loss)
+            generator_summaries =v1.summary.merge([cycle_loss_summary, identity_loss_summary, generator_loss_A2B_summary, generator_loss_B2A_summary, generator_loss_summary])
+
+        with v1.name_scope('discriminator_summaries'):
+            discriminator_loss_A_summary =v1.summary.scalar('discriminator_loss_A', self.discriminator_loss_A)
+            discriminator_loss_B_summary =v1.summary.scalar('discriminator_loss_B', self.discriminator_loss_B)
+            discriminator_loss_summary =v1.summary.scalar('discriminator_loss', self.discriminator_loss)
+            discriminator_summaries =v1.summary.merge([discriminator_loss_A_summary, discriminator_loss_B_summary, discriminator_loss_summary])
+
+        return generator_summaries, discriminator_summaries
