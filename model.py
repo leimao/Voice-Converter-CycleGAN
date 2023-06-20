@@ -192,14 +192,13 @@ class CycleGAN(object):
             os.makedirs(directory)
 
         # Save the session variables to a checkpoint file
-        self.saver.save(self.sess, os.path.join(directory, filename))
 
         # Compress the checkpoint file using zip
         with zipfile.ZipFile(os.path.join(directory, compressedname), 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
-            zipf.write(os.path.join(directory, filename))
+            zipf.write(self.saver.save(self.sess, os.path.join(directory, filename)))
 
         # Delete the uncompressed checkpoint file
-        tf.io.gfile.remove( os.path.join(directory, filename))
+        tf.io.gfile.remove(os.path.join(directory, filename))
 
 
     def load(self, filepath,compressedpath):
