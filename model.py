@@ -198,7 +198,7 @@ class CycleGAN(object):
         # Get the filename of the variables file
         variables_filename = ''
         for file_name in os.listdir(directory):
-            if file_name.startswith('model.ckpt.data'):
+            if file_name.startswith(f'{model_prefix}.ckpt.data'):
                 variables_filename = file_name
                 break
 
@@ -220,11 +220,11 @@ class CycleGAN(object):
             zipf.write(os.path.join(directory, 'checkpoint'), arcname='checkpoint')
 
             # Write the graph file
-            zipf.write(os.path.join(directory, 'model.ckpt.meta'), arcname='model.ckpt.meta')
+            zipf.write(os.path.join(directory, f'{model_prefix}.ckpt.meta'), arcname=f'{model_prefix}.ckpt.meta')
 
             # Write the variables file
-            zipf.write(os.path.join(directory, variables_filename), arcname=f'model.ckpt.data-{suffix}-of-00001')
-            zipf.write(os.path.join(directory, 'model.ckpt.index'), arcname='model.ckpt.index')
+            zipf.write(os.path.join(directory, variables_filename), arcname=f'{model_prefix}.ckpt.data-{suffix}-of-00001')
+            zipf.write(os.path.join(directory, f'{model_prefix}.ckpt.index'), arcname=f'{model_prefix}.ckpt.index')
 
         # Delete the uncompressed checkpoint file
         tf.io.gfile.remove(os.path.join(directory, filename))
@@ -235,6 +235,9 @@ class CycleGAN(object):
         with zipfile.ZipFile(compressedpath, 'r') as zipf:
             zipf.extractall(filepath)
         self.saver.restore(self.sess, filepath)
+
+        os.remove(filepath)
+
 
     def summary(self):
 
