@@ -130,7 +130,7 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
                     num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
             # save losses to a csv file
-            losses_csv_path = os.path.join(train_logs__dir, 'losses.csv')
+            losses_csv_path = os.path.join(train_logs__dir, f'{model_prefix}_losses.csv')
 
             # Check if the CSV file already exists
             file_exists = os.path.exists(losses_csv_path)

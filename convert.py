@@ -75,46 +75,20 @@ def conversion(file, conversion_direction='A2B'):
     print('Shape of Coded SP Converted after transpose: {}'.format(coded_sp_converted.shape))
 
     # Get the portion of A from B's shape[0] to the last row
-    values = sp[decoded_sp_converted.shape[0]:, :]
+    # values = sp[decoded_sp_converted.shape[0]:, :]
 
-    # Concatenate the portion of A and B
-    transformed_decoded_sp_converted = np.concatenate((decoded_sp_converted, values), axis=0)
+    # # Concatenate the portion of A and B
+    # transformed_decoded_sp_converted = np.concatenate((decoded_sp_converted, values), axis=0)
 
 
-    print('Shape of F0 after truncation: {}'.format(f0.shape))
-    print('Shape of SP after truncation: {}'.format(transformed_decoded_sp_converted.shape))
-    print('Shape of AP  after truncation: {}'.format(ap.shape))
-    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = transformed_decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
+    # print('Shape of F0 after truncation: {}'.format(f0.shape))
+    # print('Shape of SP after truncation: {}'.format(transformed_decoded_sp_converted.shape))
+    # print('Shape of AP  after truncation: {}'.format(ap.shape))
+    wav_transformed = world_speech_synthesis(f0 = f0, decoded_sp = decoded_sp_converted, ap = ap, fs = sampling_rate, frame_period = frame_period)
 
     visualize_audio(wav,sampling_rate,'Monotone audio')
     visualize_audio(wav_transformed,sampling_rate,'Synthesised audio')
     sf.write(os.path.join(output_dir, os.path.basename(file)), wav_transformed, sampling_rate)
 
-
-# if __name__ == '__main__':
-
-#     parser = argparse.ArgumentParser(description = 'Convert voices using pre-trained CycleGAN model.')
-
-#     model_dir_default = './model/sf1_tm1'
-#     model_name_default = 'sf1_tm1.ckpt'
-#     data_dir_default = './data/evaluation_all/SF1'
-#     conversion_direction_default = 'A2B'
-#     output_dir_default = './converted_voices'
-
-#     parser.add_argument('--model_dir', type = str, help = 'Directory for the pre-trained model.', default = model_dir_default)
-#     parser.add_argument('--model_name', type = str, help = 'Filename for the pre-trained model.', default = model_name_default)
-#     parser.add_argument('--data_dir', type = str, help = 'Directory for the voices for conversion.', default = data_dir_default)
-#     parser.add_argument('--conversion_direction', type = str, help = 'Conversion direction for CycleGAN. A2B or B2A. The first object in the model file name is A, and the second object in the model file name is B.', default = conversion_direction_default)
-#     parser.add_argument('--output_dir', type = str, help = 'Directory for the converted voices.', default = output_dir_default)
-
-#     argv = parser.parse_args()
-
-#     model_dir = argv.model_dir
-#     model_name = argv.model_name
-#     data_dir = argv.data_dir
-#     conversion_direction = argv.conversion_direction
-#     output_dir = argv.output_dir
-
-#     conversion(model_dir = model_dir, model_name = model_name, data_dir = data_dir, conversion_direction = conversion_direction, output_dir = output_dir)
 
 
