@@ -236,7 +236,7 @@ class CycleGAN(object):
             zipf.extractall(filepath)
         self.saver.restore(self.sess, filepath+f'/{model_prefix}.ckpt')
 
-        os.remove(filepath)
+        os.rmdir(filepath)
 
 
     def summary(self):
