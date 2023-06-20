@@ -145,11 +145,11 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
                 # Write the title row only if the file doesn't exist
                 if not file_exists:
                     writer.writerow(
-                        ["num_iterations", "generator_loss", "discriminator_loss"])
+                        ["generator_loss", "discriminator_loss"])
 
                 # Write the data row
                 writer.writerow(
-                    [num_iterations, generator_loss, discriminator_loss])
+                    [ generator_loss, discriminator_loss])
 
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
