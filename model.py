@@ -234,7 +234,7 @@ class CycleGAN(object):
         # Extract the compressed model file
         with zipfile.ZipFile(compressedpath, 'r') as zipf:
             zipf.extractall(filepath)
-        self.saver.restore(self.sess, filepath)
+        self.saver.restore(self.sess, filepath+f'/{model_prefix}.ckpt')
 
         os.remove(filepath)
 
