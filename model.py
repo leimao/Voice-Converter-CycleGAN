@@ -186,25 +186,17 @@ class CycleGAN(object):
         return generation
 
     def save(self, directory, filename):
+
         if not os.path.exists(directory):
             os.makedirs(directory)
+        self.saver.save(self.sess, os.path.join(directory, filename))
 
-        # Save the model as TensorFlow Lite
-        tflite_filepath = os.path.join(directory, filename)
-        converter = tf.lite.TFLiteConverter.from_session(self.sess, self.sess.graph.get_operations())
-        tflite_model = converter.convert()
-        with open(tflite_filepath, 'wb') as f:
-            f.write(tflite_model)
-
-        return tflite_filepath
-
+        print(os.path.join(directory, filename))
+        return os.path.join(directory, filename)
 
     def load(self, filepath):
-        # Load the TensorFlow Lite model
-        self.interpreter = tf.lite.Interpreter(model_path=filepath)
-        self.interpreter.allocate_tensors()
 
-        return self.interpreter
+        self.saver.restore(self.sess, filepath)
 
     def summary(self):
 
