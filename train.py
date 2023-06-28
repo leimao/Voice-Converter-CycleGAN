@@ -158,7 +158,6 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
               3600, (time_elapsed_epoch % 3600 // 60), (time_elapsed_epoch % 60 // 1)))
 
     model_name = "{}.ckpt".format(model_prefix)
-    model_compressed = "{}.zip".format(model_prefix)
-    model.save(directory=model_dir, filename=model_name, compressedname=model_compressed)
+    model.save(directory=model_dir, filename=model_name)
     visualize_loss(generator_losses, discriminator_losses,
                    "Generator Losses", "Discriminator Losses", 'Losses')

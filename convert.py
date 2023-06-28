@@ -17,8 +17,7 @@ def conversion(file, conversion_direction='A2B'):
     model = CycleGAN(num_features = num_features, mode = 'test')
 
     model_name = "{}".format(model_prefix)
-    model_compresed_name = "{}.zip".format(model_prefix)
-    model.load(filepath = os.path.join(model_dir, model_name),compressedpath=os.path.join(model_dir, model_compresed_name))
+    model.load(filepath = os.path.join(model_dir, model_name))
 
     mcep_normalization_params = np.load(os.path.join(norm_dir, f'{model_prefix}_mcep_normalization.npz'))
     mcep_mean_A = mcep_normalization_params['mean_A']
