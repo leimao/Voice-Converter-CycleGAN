@@ -108,8 +108,8 @@ def generator_gatedcnn(inputs, reuse=False, scope_name='generator_gatedcnn'):
         r5 = residual1d_block(inputs=r4, filters=1024, kernel_size=3, strides=1, name_prefix='residual1d_block5_')
 
         # Upsample
-        u1 = upsample1d_block(inputs=r5, filters=512, kernel_size=5, strides=2, name_prefix='upsample1d_block1_')
-        u2 = upsample1d_block(inputs=u1, filters=256, kernel_size=5, strides=2, name_prefix='upsample1d_block2_')
+        u1 = upsample1d_block(inputs=r5, filters=1024, kernel_size=5, strides=2, name_prefix='upsample1d_block1_')
+        u2 = upsample1d_block(inputs=u1, filters=512, kernel_size=5, strides=2, name_prefix='upsample1d_block2_')
 
         h2 = conv1d_layer(inputs=u2, filters=24, kernel_size=15, strides=1, activation='tanh', name='h2_conv')
 
