@@ -124,33 +124,12 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
             generator_losses.append(generator_loss)
             discriminator_losses.append(discriminator_loss)
 
-            if i % 500 == 0:
+            if i % 1000 == 0:
                 # print('Iteration: %d, Generator Loss : %f, Discriminator Loss : %f' % (num_iterations, generator_loss, discriminator_loss))
                 print('Iteration: {:05d}, Generator Learning Rate: {:.7f}, Discriminator Learning Rate: {:.7f}, Generator Loss : {:.7f}, Discriminator Loss : {:.7f}'.format(
                     num_iterations, generator_learning_rate, discriminator_learning_rate, generator_loss, discriminator_loss))
 
-            if not os.path.exists(train_logs__dir):
-                os.makedirs(train_logs__dir)
-                
-            # save losses to a csv file
-            losses_csv_path = os.path.join(train_logs__dir, f'{model_prefix}_losses.csv')
-
-            # Check if the CSV file already exists
-            file_exists = os.path.exists(losses_csv_path)
-
-            # Open the CSV file in append mode
-            with open(losses_csv_path, 'a', newline='') as f:
-                writer = csv.writer(f)
-
-                # Write the title row only if the file doesn't exist
-                if not file_exists:
-                    writer.writerow(
-                        ["generator_loss", "discriminator_loss"])
-
-                # Write the data row
-                writer.writerow(
-                    [ generator_loss, discriminator_loss])
-
+           
         end_time_epoch = time.time()
         time_elapsed_epoch = end_time_epoch - start_time_epoch
 
@@ -159,5 +138,3 @@ def train(coded_sps_A_norm, coded_sps_B_norm, random_seed):
 
     model_name = "{}.ckpt".format(model_prefix)
     model.save(directory=model_dir, filename=model_name)
-    visualize_loss(generator_losses, discriminator_losses,
-                   "Generator Losses", "Discriminator Losses", 'Losses')

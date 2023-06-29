@@ -188,58 +188,6 @@ class CycleGAN(object):
 
         return generation
 
-    # def save(self, directory, filename, compressedname):
-
-    #     if not os.path.exists(directory):
-    #         os.makedirs(directory)
-
-    #     # Save the session variables to a checkpoint file
-    #     self.saver.save(self.sess, os.path.join(directory, filename))
-
-    #     # Get the filename of the variables file
-    #     variables_filename = ''
-    #     for file_name in os.listdir(directory):
-    #         if file_name.startswith(f'{model_prefix}.ckpt.data'):
-    #             variables_filename = file_name
-    #             break
-
-    #     if variables_filename == '':
-    #         raise ValueError("Variables file not found.")
-
-    #     # Extract the suffix from the variables filename
-    #     suffix_pattern = r'.*\.data-(\d+)-of-(\d+)'
-    #     match = re.match(suffix_pattern, variables_filename)
-    #     if match:
-    #         suffix = match.group(1)
-    #     else:
-    #         raise ValueError("Unable to extract suffix from variables filename.")
-
-
-    #     # Compress the checkpoint file using zip
-    #     with zipfile.ZipFile(os.path.join(directory, compressedname), 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
-    #         # Write the checkpoint file
-    #         zipf.write(os.path.join(directory, 'checkpoint'), arcname='checkpoint')
-
-    #         # Write the graph file
-    #         zipf.write(os.path.join(directory, f'{model_prefix}.ckpt.meta'), arcname=f'{model_prefix}.ckpt.meta')
-
-    #         # Write the variables file
-    #         zipf.write(os.path.join(directory, variables_filename), arcname=f'{model_prefix}.ckpt.data-{suffix}-of-00001')
-    #         zipf.write(os.path.join(directory, f'{model_prefix}.ckpt.index'), arcname=f'{model_prefix}.ckpt.index')
-
-    #     # Delete the uncompressed checkpoint file
-    #     tf.io.gfile.remove(os.path.join(directory, filename))
-
-
-    # def load(self, filepath,compressedpath):
-    #     # Extract the compressed model file
-    #     with zipfile.ZipFile(compressedpath, 'r') as zipf:
-    #         zipf.extractall(filepath)
-    #     self.saver.restore(self.sess, filepath+f'/{model_prefix}.ckpt')
-
-    #     shutil.rmtree(filepath, ignore_errors=True)
-
-
     
     def save(self, directory, filename):
 

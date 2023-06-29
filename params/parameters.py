@@ -1,29 +1,29 @@
 #############################
 # Training Parameters
 #############################
-num_of_epochs = 20
+num_of_epochs = 1000
 audio_sampling_rate = 16000
 
 #############################
 # Datsets Parameters
 #############################
-train_A_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/neutral'
-train_B_dir = '/content/drive/MyDrive/Dataset/Emotional Speech Audio/Audios/happy'
+train_A_dir = 'gs://audio_dataset_bucket/Audios/neutral'
+train_B_dir = 'gs://audio_dataset_bucket/Audios/happy'
 
 #############################
 # Model Parameters
 #############################
 model_prefix = 'happy'
-model_dir =f'/content/drive/MyDrive/Model Assets/Models/{model_prefix}'
+model_dir =f'./{model_prefix}'
 
 #############################
 # Training logs Parameters
 #############################
-train_logs__dir ='/content/drive/MyDrive/Model Assets/Train_Logs'
+train_logs__dir ='./Train_Logs'
 
 #############################
 # Output Parameters
 #############################
-norm_dir = '/content/drive/MyDrive/Model Assets/Normalizations'
+norm_dir = './Normalizations'
 output_dir = './output'
-log_dir = '/content/drive/MyDrive/Model Assets/Tensorboard_Logs'
+log_dir = './Tensorboard_Logs'
